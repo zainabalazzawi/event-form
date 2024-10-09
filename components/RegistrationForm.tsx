@@ -15,40 +15,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useRouter } from "next/navigation";
+import { useFormStore } from "@/app/FormFieldsStore";
 
 const RegistrationForm = () => {
-  const [submittedFields, setSubmittedField] = useState<z.infer<
-    typeof formSchema
-  > | null>(null);
-
-
+  const router = useRouter();
+  const { setFormFields } = useFormStore();
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const formSchema = z.object({
     firstName: z.string().min(2, {
-      message: "This field is required",
+      message: "Name field is required",
     }),
-    sirName: z.string().min(2, {
-      message: "This field is required",
+    lastName: z.string().min(2, {
+      message: "Last Name field is required",
     }),
     email: z
       .string()
       .min(2, {
-        message: "This field is required",
+        message: "Email field is required",
       })
       .email({ message: "Invalid email address" }),
     phone: z.coerce.number().min(2, {
-      message: "This field is required",
+      message: "Phone field is required",
     }),
-    options: z.enum(["BY_SOCIAL_MEDIA", "BY_OTHERS", "BY_ADS"]),
+    // options: z.enum(["BY_SOCIAL_MEDIA", "BY_OTHERS", "BY_ADS"]),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: "",
-      sirName: "",
+      lastName: "",
       email: "",
       phone: undefined,
-      options: 'BY_SOCIAL_MEDIA'
+      // options: 'BY_SOCIAL_MEDIA'
     },
   });
 
@@ -71,18 +71,23 @@ const RegistrationForm = () => {
       if (!response.ok) {
         throw new Error("Failed to submit the form");
       }
-      const data = await response; //.json(); // need to check why get SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
-      console.log("form was successfully submitted", data);
+      // const data = await response; //.json(); // need to check why get SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+      // console.log("form was successfully submitted", data);
 
-      setSubmittedField(fields);
+      setFormFields(fields);
+      setIsSubmitted(true);
+
+      setTimeout(() => {
+        router.push("/ticket-page");
+      }, 2000);
     } catch (error) {
       console.log("something wrong happened while filling in the form", error);
     }
   };
   return (
-    <div>
+    <div className="flex items-center justify-center">
       <div className="p-10 w-[50%]">
-        <h1>Registration Attendee Event</h1>
+        <h1 className="font-semibold">Registration Attendee Event</h1>
         <Form {...form}>
           <form onSubmit={handleSubmit(onHandleSubmit)}>
             <FormItem className="my-5">
@@ -94,10 +99,10 @@ const RegistrationForm = () => {
             </FormItem>
 
             <FormItem className="my-5">
-              <FormLabel>Sir Name</FormLabel>
-              <Input {...register("sirName")} />
+              <FormLabel>Last Name</FormLabel>
+              <Input {...register("lastName")} />
               <FormMessage>
-                {errors.sirName && <span>{errors.sirName.message}</span>}
+                {errors.lastName && <span>{errors.lastName.message}</span>}
               </FormMessage>
             </FormItem>
 
@@ -116,7 +121,7 @@ const RegistrationForm = () => {
                 {errors.phone && <span>{errors.phone.message}</span>}
               </FormMessage>
             </FormItem>
-
+            {/* 
             <Select {...register("options")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select an option" />
@@ -126,7 +131,7 @@ const RegistrationForm = () => {
                   <SelectItem value="BY_OTHERS">by others</SelectItem>
                   <SelectItem value="BY_ADS">by ads</SelectItem>
                 </SelectContent>
-              </Select>
+              </Select> */}
 
             <Button type="submit" className="mt-6">
               Submit
@@ -134,25 +139,9 @@ const RegistrationForm = () => {
           </form>
         </Form>
 
-        {submittedFields && (
-          <div className="mt-10 p-5 border border-gray-300 rounded">
-            <h2 className="text-xl font-semibold mb-4">
-              ticket of attendee event
-            </h2>
-            <p className="font-semibold">
-              first Name:
-              <span className="font-light">{submittedFields.firstName}</span>
-            </p>
-            <p className="font-semibold">
-              sir Name:
-              <span className="font-light">{submittedFields.sirName}</span>
-            </p>
-            <p className="font-semibold">
-              email: <span className="font-light">{submittedFields.email}</span>
-            </p>
-            <p className="font-semibold">
-              phone: <span className="font-light">{submittedFields.phone}</span>
-            </p>
+        {isSubmitted && (
+          <div className="mt-4 p-4 w-[80%] text-green-800 border border-green-800 rounded">
+            Form successfully submitted! redirecting to ticket page...
           </div>
         )}
       </div>
