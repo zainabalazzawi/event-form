@@ -2,6 +2,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import Link from "next/link";
 
 type Attendee = {
   id: number;
@@ -13,7 +14,7 @@ type Attendee = {
 
 const getAttendees = async () => {
   const { data } = await axios.get("/api/attendees");
-  return data
+  return data;
 };
 
 const AttendeesList = () => {
@@ -38,22 +39,30 @@ const AttendeesList = () => {
         {attendees && attendees.length > 0 ? (
           <div>
             {attendees.map((attendee, id) => (
-              <div key={id} className="mb-4 border border-gray-300 rounded p-5">
-                <div className="font-semibold ">
-                  First Name:{" "}
-                  <span className="font-light">{attendee.firstName}</span>
+              <>
+                <div
+                  key={id}
+                  className="mb-4 border border-gray-300 rounded p-5"
+                >
+                  <div className="font-semibold ">
+                    First Name:
+                    <span className="font-light">{attendee.firstName}</span>
+                  </div>
+                  <div className="font-semibold">
+                    Last Name:
+                    <span className="font-light">{attendee.lastName}</span>
+                  </div>
+                  <div className="font-semibold">
+                    Email: <span className="font-light">{attendee.email}</span>
+                  </div>
+
+                  <div className="text-[#649C9E] font-semibold mt-4">
+                    <Link href={`/attendees-list/${attendee.id}`}>
+                      see info of attendee
+                    </Link>
+                  </div>
                 </div>
-                <div className="font-semibold">
-                  Last Name:{" "}
-                  <span className="font-light">{attendee.lastName}</span>
-                </div>
-                <div className="font-semibold">
-                  Email: <span className="font-light">{attendee.email}</span>
-                </div>
-                <div className="font-semibold">
-                  Phone: <span className="font-light">{attendee.phone}</span>
-                </div>
-              </div>
+              </>
             ))}
           </div>
         ) : (
