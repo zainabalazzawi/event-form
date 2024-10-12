@@ -17,10 +17,13 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { useFormStore } from "@/app/FormFieldsStore";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 const RegistrationForm = () => {
   const router = useRouter();
   const { setFormFields } = useFormStore();
+  const queryClient = useQueryClient();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const formSchema = z.object({
     firstName: z.string().min(2, {
@@ -58,32 +61,32 @@ const RegistrationForm = () => {
     formState: { errors },
   } = form;
 
-  const onHandleSubmit = async (fields: z.infer<typeof formSchema>) => {
-    try {
-      const response = await fetch("http://localhost:3000", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(fields),
-      });
 
-      if (!response.ok) {
-        throw new Error("Failed to submit the form");
-      }
-      // const data = await response; //.json(); // need to check why get SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
-      // console.log("form was successfully submitted", data);
 
+  const addAttendeeMutation = async (fields: z.infer<typeof formSchema>) => {
+    const response = await axios.post("/api/attendees", fields);
+    return response.data;
+  }
+  const mutation = useMutation({
+    mutationFn: addAttendeeMutation,
+    onSuccess: (fields: z.infer<typeof formSchema>) => {
+
+      queryClient.invalidateQueries({ queryKey: ["attendees"] });
       setFormFields(fields);
       setIsSubmitted(true);
-
       setTimeout(() => {
         router.push("/ticket-page");
       }, 2000);
-    } catch (error) {
-      console.log("something wrong happened while filling in the form", error);
-    }
+    },
+    onError: (error) => {
+      console.error("Something went wrong while submitting the form", error);
+    },
+  });
+
+  const onHandleSubmit = (fields: z.infer<typeof formSchema>) => {
+    mutation.mutate(fields);
   };
+
   return (
     <div className="flex items-center justify-center">
       <div className="p-10 w-[50%]">
