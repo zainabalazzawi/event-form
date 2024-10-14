@@ -1,5 +1,4 @@
 "use client";
-import React, { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -24,7 +23,6 @@ const RegistrationForm = () => {
   const router = useRouter();
   const { setFormFields } = useFormStore();
   const queryClient = useQueryClient();
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const formSchema = z.object({
     firstName: z.string().min(2, {
       message: "Name field is required",
@@ -73,7 +71,6 @@ const RegistrationForm = () => {
 
       queryClient.invalidateQueries({ queryKey: ["attendees"] });
       setFormFields(fields);
-      setIsSubmitted(true);
       setTimeout(() => {
         router.push("/ticket-page");
       }, 2000);
@@ -142,7 +139,7 @@ const RegistrationForm = () => {
           </form>
         </Form>
 
-        {isSubmitted && (
+        {mutation.isSuccess && (
           <div className="mt-4 p-4 w-[80%] text-green-800 border border-green-800 rounded">
             Form successfully submitted! redirecting to ticket page...
           </div>
