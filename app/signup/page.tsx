@@ -12,9 +12,6 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 
 const signupSchema = z.object({
-  username: z.string().min(2, {
-    message: "uername is required",
-  }),
   email: z
     .string()
     .min(2, {
@@ -43,7 +40,6 @@ const Signup = () => {
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      username: "",
       email: "",
       password: "",
     },
@@ -79,14 +75,6 @@ const Signup = () => {
         <Form {...form}>
           <form onSubmit={handleSubmit(onHandleSubmit)}>
             <FormItem className="my-5">
-              <FormLabel>User name</FormLabel>
-              <Input {...register("username")} />
-              <FormMessage>
-                {errors.username && <span>{errors.username.message}</span>}
-              </FormMessage>
-            </FormItem>
-
-            <FormItem className="my-5">
               <FormLabel>Email</FormLabel>
               <Input type="email" {...register("email")} />
               <FormMessage>
@@ -112,6 +100,11 @@ const Signup = () => {
           </form>
         </Form>
 
+        {mutation.isError && (
+              <div className="mt-4 p-4 text-red-800 border border-red-800 rounded text-center">
+               User with this email already exist
+              </div>
+            )}
         {mutation.isSuccess && (
           <div className="mt-4 p-4 w-[80%] text-green-800 border border-green-800 rounded">
             Form successfully submitted! Redirecting to login page...

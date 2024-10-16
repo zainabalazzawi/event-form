@@ -1,35 +1,35 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { sql } from "@vercel/postgres";
 
-
-
-// let users = []; // add type 
 export async function POST(req: Request) {
+  const { password, email } = await req.json();
   try {
-    // const { username, password, email } = await req.json();
+    const userExistsQuery = await sql`
+      SELECT COUNT(*) > 0 AS exists
+      FROM users
+      WHERE email = ${email}
+    `;
 
-    // const existingUser = users.find((user) => user.email === email);
-    // if (existingUser) {
-    //   return NextResponse.json(
-    //     { error: "user already exists" },
-    //     { status: 409 }
-    //   );
-    // }
+    if (userExistsQuery.rows[0].exists) {
+      return NextResponse.json(
+        { error: "User with this email already exists" },
+        { status: 409 }
+      );
+    }
 
-    // const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // const newUser = {
-    //   username,
-    //   email,
-    //   password:hashedPassword,
-    // };
-    // users.push(newUser);
-// use fs.writeFile to store 
-    return NextResponse.json({ message: "user registered successfully" });
+    await sql`
+      INSERT INTO users (email, password)
+      VALUES (${email}, ${hashedPassword})
+    `;
+
+    return NextResponse.json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("signup error", error);
+    console.error("Error during user registration:", error);
     return NextResponse.json(
-      { error: "something went wrong" },
+      { error: "An error occurred during registration" },
       { status: 500 }
     );
   }
