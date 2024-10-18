@@ -46,7 +46,7 @@ const AttendeeInfo = ({ id }: AttendeeProps) => {
         {attendee ? (
           <div className="mb-4 border border-gray-300 rounded p-5">
             <div className="font-semibold ">
-              First Name:{" "}
+              First Name:
               <span className="font-light">{attendee.firstName}</span>
             </div>
             <div className="font-semibold">

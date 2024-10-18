@@ -71,6 +71,15 @@ const handler = NextAuth({
   },
   pages: {
     signIn: '/login',
+    signOut: '/logout',
+  },
+  session: {
+    strategy: 'jwt',
+  },
+  events: {
+    signOut: async (message) => {
+      console.log('User signed out:', message);
+    },
   },
 })
 

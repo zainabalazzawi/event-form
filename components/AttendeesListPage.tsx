@@ -18,7 +18,7 @@ const getAttendees = async () => {
 };
 
 const AttendeesList = () => {
-  const { data, isLoading, isError, error } = useQuery<Attendee[]>({
+  const { data:attendees , isLoading, isError, error } = useQuery<Attendee[]>({
     queryKey: ["attendees"],
     queryFn: getAttendees,
   });
@@ -31,7 +31,6 @@ const AttendeesList = () => {
     return <div>Error: {error.message}</div>;
   }
 
-  const attendees = data;
   return (
     <div className="flex items-center justify-center">
       <div className="mt-10 p-5 border border-gray-300 rounded w-[50%]">
