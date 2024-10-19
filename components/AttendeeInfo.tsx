@@ -1,10 +1,27 @@
 "use client";
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { CornerDownLeft } from "lucide-react";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { useSession } from "next-auth/react";
 
 type Attendee = {
   id: number;
@@ -12,6 +29,7 @@ type Attendee = {
   lastName: string;
   email: string;
   phone: number;
+  attendanceState: string;
 };
 
 const getAttendee = async (id: number) => {
@@ -25,9 +43,30 @@ type AttendeeProps = {
 
 const AttendeeInfo = ({ id }: AttendeeProps) => {
   const router = useRouter();
-  const { data, isLoading, isError, error } = useQuery<Attendee>({
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
+
+  const {
+    data: attendee,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<Attendee>({
     queryKey: ["attendee", id],
     queryFn: () => getAttendee(id),
+  });
+  const form = useForm({
+    defaultValues: {
+      attendanceState: attendee?.attendanceState || "",
+    },
+  });
+  const { control, handleSubmit } = form;
+  const mutation = useMutation({
+    mutationFn: (newState: string) =>
+      axios.patch(`/api/attendees/${id}`, { attendanceState: newState }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendee", id] });
+    },
   });
 
   if (isLoading) {
@@ -38,7 +77,10 @@ const AttendeeInfo = ({ id }: AttendeeProps) => {
     return <div>Error: {error.message}</div>;
   }
 
-  const attendee = data;
+  const onSubmit = (data: { attendanceState: string }) => {
+    mutation.mutate(data.attendanceState);
+  };
+
   return (
     <div className="flex items-center justify-center">
       <div className="mt-10 p-5 border border-gray-300 rounded w-[50%]">
@@ -55,6 +97,42 @@ const AttendeeInfo = ({ id }: AttendeeProps) => {
             <div className="font-semibold">
               Email: <span className="font-light">{attendee.email}</span>
             </div>
+            {session && session.user?.email === attendee.email && (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4">
+                  <FormField
+                    control={control}
+                    name="attendanceState"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Attendance State</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Attending" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="ATTENDING">Attending</SelectItem>
+                            <SelectItem value="NOT_ATTENDING">
+                              Not Attending
+                            </SelectItem>
+                            <SelectItem value="MAYBE">Maybe</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="mt-4">
+                    Update Attendance
+                  </Button>
+                </form>
+              </Form>
+            )}
           </div>
         ) : (
           <p>No attendee found.</p>

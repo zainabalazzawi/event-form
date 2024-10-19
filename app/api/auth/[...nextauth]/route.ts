@@ -80,6 +80,9 @@ const handler = NextAuth({
     signOut: async (message) => {
       console.log('User signed out:', message);
     },
+    signIn: async (message) => {
+      console.log('User signed in:', message);
+    },
   },
 })
 

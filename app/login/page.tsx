@@ -21,6 +21,7 @@ const loginMutation = async (loginData: LoginFormData) => {
   });
 
   if (result?.error) {
+    console.log(result.error)
     throw new Error(result.error);
   }
 
@@ -78,7 +79,7 @@ const Login = () => {
 
         {mutation.isError && (
           <div className="mt-4 p-4 text-red-800 border border-red-800 rounded text-center">
-            {mutation.error.message}
+          invalid email or passwod
           </div>
         )}
       </div>
