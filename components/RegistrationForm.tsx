@@ -17,12 +17,27 @@ import {
 import { useRouter } from "next/navigation";
 import { useFormStore } from "@/app/FormFieldsStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { gql, useApolloClient } from "@apollo/client";
+
+const ADD_ATTENDEE = gql`
+  mutation AddAttendee($firstName: String!, $lastName: String!, $email: String!, $phone: String!, $attendanceState: String) {
+    addAttendee(firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, attendanceState: $attendanceState) {
+      id
+      firstName
+      lastName
+      email
+      phone
+      attendanceState
+    }
+  }
+`;
 
 const RegistrationForm = () => {
   const router = useRouter();
   const { setFormFields } = useFormStore();
   const queryClient = useQueryClient();
+  const client = useApolloClient();
+
   const formSchema = z.object({
     firstName: z.string().min(2, {
       message: "Name field is required",
@@ -62,15 +77,23 @@ const RegistrationForm = () => {
 
 
   const addAttendeeMutation = async (fields: z.infer<typeof formSchema>) => {
-    const response = await axios.post("/api/attendees", fields);
-    return response.data;
-  }
+    const { data } = await client.mutate({
+      mutation: ADD_ATTENDEE,
+      variables: {
+        firstName: fields.firstName,
+        lastName: fields.lastName,
+        email: fields.email,
+        phone: fields.phone.toString(),
+      },
+    });
+    return data.addAttendee;
+  };
+
   const mutation = useMutation({
     mutationFn: addAttendeeMutation,
-    onSuccess: (fields: z.infer<typeof formSchema>) => {
-
+    onSuccess: (newAttendee) => {
       queryClient.invalidateQueries({ queryKey: ["attendees"] });
-      setFormFields(fields);
+      setFormFields(newAttendee);
       setTimeout(() => {
         router.push("/ticket-page");
       }, 2000);

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { gql, useApolloClient } from "@apollo/client";
 import { CornerDownLeft } from "lucide-react";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
@@ -32,19 +32,51 @@ type Attendee = {
   attendanceState: string;
 };
 
-const getAttendee = async (id: number) => {
-  const { data } = await axios.get(`/api/attendees/${id}`);
-  return data;
-};
+const GET_ATTENDEE = gql`
+  query GetAttendee($id: Int!) {
+    attendee(id: $id) {
+      id
+      firstName
+      lastName
+      email
+      phone
+      attendanceState
+    }
+  }
+`;
+
+const UPDATE_ATTENDANCE_STATE = gql`
+  mutation UpdateAttendanceState($id: Int!, $attendanceState: String!) {
+    updateAttendanceState(id: $id, attendanceState: $attendanceState) {
+      id
+      attendanceState
+    }
+  }
+`;
 
 type AttendeeProps = {
   id: number;
 };
-
 const AttendeeInfo = ({ id }: AttendeeProps) => {
   const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
+  const client = useApolloClient();
+
+  const getAttendee = async () => {
+    const { data } = await client.query({
+      query: GET_ATTENDEE,
+      variables: { id },
+    });
+    return data.attendee;
+  };
+  const updateAttendanceState = async (newState: string) => {
+    const { data } = await client.mutate({
+      mutation: UPDATE_ATTENDANCE_STATE,
+      variables: { id, attendanceState: newState },
+    });
+    return data.updateAttendanceState;
+  }
 
   const {
     data: attendee,
@@ -53,18 +85,18 @@ const AttendeeInfo = ({ id }: AttendeeProps) => {
     error,
   } = useQuery<Attendee>({
     queryKey: ["attendee", id],
-    queryFn: () => getAttendee(id),
+    queryFn: getAttendee,
   });
+
   const form = useForm({
     defaultValues: {
-      attendanceState: attendee?.attendanceState || "",
+      attendanceState: attendee?.attendanceState || "ATTENDING",
     },
   });
   const { control, handleSubmit } = form;
   const mutation = useMutation({
-    mutationFn: (newState: string) =>
-      axios.patch(`/api/attendees/${id}`, { attendanceState: newState }),
-    onSuccess: () => {
+    mutationFn: updateAttendanceState,
+    onSuccess: () => {   
       queryClient.invalidateQueries({ queryKey: ["attendee", id] });
     },
   });
@@ -99,7 +131,7 @@ const AttendeeInfo = ({ id }: AttendeeProps) => {
             </div>
             {session && session.user?.email === attendee.email && (
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
                   <FormField
                     control={control}
                     name="attendanceState"
