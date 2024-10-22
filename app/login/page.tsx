@@ -5,7 +5,7 @@ import { Form, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { signIn } from "next-auth/react";
-// import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 
 type LoginFormData = {
@@ -29,7 +29,7 @@ const loginMutation = async (loginData: LoginFormData) => {
 };
 
 const Login = () => {
-  // const router = useRouter();
+const router = useRouter();
 
   const form = useForm<LoginFormData>({
     defaultValues: {
@@ -44,7 +44,7 @@ const Login = () => {
     mutationFn: loginMutation,
     onSuccess: () => {
       console.log("Successfully logged in!");
-      // router.push("/");
+      router.push("/");
     },
     onError: (error: Error) => {
       console.log("Login failed", error.message);

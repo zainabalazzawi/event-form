@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-// import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const signupSchema = z.object({
   email: z
@@ -36,7 +36,7 @@ const signupMutation = async (signupData: SignupFormData) => {
 };
 
 const Signup = () => {
-  // const router = useRouter();
+  const router = useRouter();
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -56,7 +56,7 @@ const Signup = () => {
     onSuccess: () => {
       console.log("successfully signed up!");
       setTimeout(() => {
-        // router.push("/login");
+        router.push("/login");
       }, 2000);
     },
     onError: (error: any) => {
