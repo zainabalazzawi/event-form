@@ -1,21 +1,21 @@
 "use client";
 
-import { useFormStore } from "@/app/FormFieldsStore";
+// import { useFormStore } from "@/app/FormFieldsStore";
 import { Button } from "./ui/button";
 import Link from "next/link";
 
 const TicketPage = () => {
-  const { formFields } = useFormStore();
+  // const { formFields } = useFormStore();
 
   
-  if (!formFields) {
-    return null
-  }
+  // if (!formFields) {
+  //   return null
+  // }
 
 
   return (
     <div>
-      {formFields && (
+      {/* {formFields && (
         <>
           <h2 className="text-xl font-semibold">here is your ticket</h2>
           <div className="mt-10 p-5 border border-gray-300 rounded w-[50%]">
@@ -38,7 +38,7 @@ const TicketPage = () => {
             </p>
           </div>
         </>
-      )}
+      )} */}
 
       <Link href="/attendees-list" passHref>
         <Button className="mt-6">see the attendees</Button>

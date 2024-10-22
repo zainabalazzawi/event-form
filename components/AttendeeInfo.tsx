@@ -81,8 +81,8 @@ const AttendeeInfo = ({ id }: AttendeeProps) => {
   const {
     data: attendee,
     isLoading,
-    isError,
-    error,
+    // isError,
+    // error,
   } = useQuery<Attendee>({
     queryKey: ["attendee", id],
     queryFn: getAttendee,
@@ -105,9 +105,9 @@ const AttendeeInfo = ({ id }: AttendeeProps) => {
     return <div>Loading...</div>;
   }
 
-  if (isError) {
-    return <div>Error: {error.message}</div>;
-  }
+  // if (isError) {
+  //   return <div>Error: {error.message}</div>;
+  // }
 
   const onSubmit = (data: { attendanceState: string }) => {
     mutation.mutate(data.attendanceState);
