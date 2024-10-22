@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useFormStore } from "@/app/FormFieldsStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
@@ -33,7 +33,7 @@ const ADD_ATTENDEE = gql`
 `;
 
 const RegistrationForm = () => {
-  const router = useRouter();
+  // const router = useRouter();
   const { setFormFields } = useFormStore();
   const queryClient = useQueryClient();
   const client = useApolloClient();
@@ -95,7 +95,7 @@ const RegistrationForm = () => {
       queryClient.invalidateQueries({ queryKey: ["attendees"] });
       setFormFields(newAttendee);
       setTimeout(() => {
-        router.push("/ticket-page");
+        // router.push("/ticket-page");
       }, 2000);
     },
     onError: (error) => {

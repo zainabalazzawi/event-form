@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import { CornerDownLeft } from "lucide-react";
 import { Button } from "./ui/button";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -58,7 +58,7 @@ type AttendeeProps = {
   id: number;
 };
 const AttendeeInfo = ({ id }: AttendeeProps) => {
-  const router = useRouter();
+  // const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const client = useApolloClient();
@@ -173,7 +173,7 @@ const AttendeeInfo = ({ id }: AttendeeProps) => {
         <div className="flex flex-row items-center gap-2">
           <Button
             onClick={() => {
-              router.push("/attendees-list");
+              // router.push("/attendees-list");
             }}
           >
             <CornerDownLeft size={20} />
