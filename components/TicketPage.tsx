@@ -1,16 +1,17 @@
 "use client";
 
 import { useFormStore } from "@/app/FormFieldsStore";
-import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
+import Link from "next/link";
 
 const TicketPage = () => {
-  const router = useRouter();
   const { formFields } = useFormStore();
 
+  
   if (!formFields) {
-    router.push("/");
+    return null
   }
+
 
   return (
     <div>
@@ -39,9 +40,9 @@ const TicketPage = () => {
         </>
       )}
 
-      <Button className="mt-6" onClick={() => router.push("/attendees-list")}>
-        see the attendees
-      </Button>
+      <Link href="/attendees-list" passHref>
+        <Button className="mt-6">see the attendees</Button>
+      </Link>
     </div>
   );
 };
