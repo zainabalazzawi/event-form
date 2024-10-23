@@ -135,18 +135,6 @@ const RegistrationForm = () => {
                 {errors.phone && <span>{errors.phone.message}</span>}
               </FormMessage>
             </FormItem>
-            {/* 
-            <Select {...register("options")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an option" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BY_SOCIAL_MEDIA">by social media</SelectItem>
-                  <SelectItem value="BY_OTHERS">by others</SelectItem>
-                  <SelectItem value="BY_ADS">by ads</SelectItem>
-                </SelectContent>
-              </Select> */}
-
             <Button type="submit" className="mt-6">
               Submit
             </Button>
