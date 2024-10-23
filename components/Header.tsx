@@ -2,9 +2,11 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
 
 const Header = () => {
   const { data: session } = useSession();
+  const router = useRouter();
 
   console.log(session)
 
@@ -19,7 +21,7 @@ const Header = () => {
               </Button>
             </div>
           ) : (
-            <Button>
+            <Button onClick={() => router.push('/login')}>
             
             Sign in
             </Button>

@@ -7,7 +7,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+import { useRouter } from "next/navigation";
 import { useFormStore } from "@/app/FormFieldsStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
@@ -26,6 +33,7 @@ const ADD_ATTENDEE = gql`
 `;
 
 const RegistrationForm = () => {
+  const router = useRouter();
   const { setFormFields } = useFormStore();
   const queryClient = useQueryClient();
   const client = useApolloClient();
@@ -87,6 +95,7 @@ const RegistrationForm = () => {
       queryClient.invalidateQueries({ queryKey: ["attendees"] });
       setFormFields(newAttendee);
       setTimeout(() => {
+      router.push("/ticket-page");
       }, 2000);
     },
     onError: (error) => {
@@ -135,6 +144,18 @@ const RegistrationForm = () => {
                 {errors.phone && <span>{errors.phone.message}</span>}
               </FormMessage>
             </FormItem>
+            {/* 
+            <Select {...register("options")}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BY_SOCIAL_MEDIA">by social media</SelectItem>
+                  <SelectItem value="BY_OTHERS">by others</SelectItem>
+                  <SelectItem value="BY_ADS">by ads</SelectItem>
+                </SelectContent>
+              </Select> */}
+
             <Button type="submit" className="mt-6">
               Submit
             </Button>
