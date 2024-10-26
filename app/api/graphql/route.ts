@@ -1,84 +1,56 @@
-import { ApolloServer } from '@apollo/server';
-import { startServerAndCreateNextHandler } from '@as-integrations/next';
-import { gql } from 'graphql-tag';
+import { ApolloServer } from "@apollo/server";
+import { startServerAndCreateNextHandler } from "@as-integrations/next";
+import { gql } from "graphql-tag";
 import { sql } from "@vercel/postgres";
 
-
-type Attendee = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  attendanceState: string;
-};
-
 const typeDefs = gql`
-  type Attendee {
-    id: Int!
-    firstName: String!
-    lastName: String!
-    email: String!
-    phone: String!
-    attendanceState: String
-  }
+
+type Event {
+  id: Int!
+  title: String!
+  description: String!
+  date: String!
+  organizer: String!
+}
 
   type Query {
-    attendees: [Attendee!]!
-    attendee(id: Int!): Attendee
+    events: [Event!]!
   }
-
-type Mutation {
-  updateAttendanceState(id: Int!, attendanceState: String!): Attendee
-  addAttendee(firstName: String!, lastName: String!, email: String!, phone: String!, attendanceState: String = "ATTENDING"): Attendee
-}
+    
+  type Mutation {
+    createEvent(
+      title: String!
+      description: String!
+      date: String!
+      organizer: String!
+    ): Event
 `;
 
 const resolvers = {
   Query: {
-    attendees: async () => {
+    events: async () => {
       const result = await sql`
-        SELECT 
-          id,
-          first_name AS "firstName",
-          last_name AS "lastName",
-          email,
-          phone,
-          attendance_state AS "attendanceState"
-        FROM attendees
+        SELECT id, title, description, date, organizer
+        FROM events
       `;
       return result.rows;
     },
-    attendee: async (_: unknown, {id}:{ id :number}) => {
-      const result = await sql`
-        SELECT 
-          id,
-          first_name AS "firstName",
-          last_name AS "lastName",
-          email,
-          phone,
-          attendance_state AS "attendanceState"
-        FROM attendees
-        WHERE id = ${id}
-      `;
-      return result.rows[0];
-    },
   },
   Mutation: {
-    updateAttendanceState: async (_: unknown, { id, attendanceState }: { id: number; attendanceState: string }) => {
+    createEvent: async (
+      _: unknown,
+      {
+        title,
+        description,
+        date,
+        organizer,
+      }: { title: string; description: string; date: string; organizer: string }
+    ) => {
+      const timestamp = new Date(date).getTime().toString();
       const result = await sql`
-        UPDATE attendees
-        SET attendance_state = ${attendanceState}
-        WHERE id = ${id}
-        RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone, attendance_state AS "attendanceState"
-      `;
-      return result.rows[0];
-    },
-    addAttendee: async (_: unknown, { firstName, lastName, email, phone, attendanceState = "ATTENDING" } : Attendee) => {
-      const result = await sql`
-        INSERT INTO attendees (first_name, last_name, email, phone, attendance_state)
-        VALUES (${firstName}, ${lastName}, ${email}, ${phone}, ${attendanceState})
-        RETURNING id, first_name AS "firstName", last_name AS "lastName", email, phone, attendance_state AS "attendanceState"
+        INSERT INTO events (title, description, date, organizer)
+        VALUES (${title}, ${description}, ${timestamp}, ${organizer})
+        RETURNING id, title, description, date, organizer
       `;
       return result.rows[0];
     },

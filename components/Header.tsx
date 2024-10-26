@@ -19,6 +19,9 @@ const Header = () => {
               <Button onClick={() => signOut({ callbackUrl: '/' })}>
                 Sign out
               </Button>
+              <Button onClick={() => router.push('/create-event')} className="mr-4">
+                Create Event
+              </Button>
             </div>
           ) : (
             <Button onClick={() => router.push('/login')}>
