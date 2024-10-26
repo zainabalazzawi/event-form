@@ -1,8 +1,8 @@
 "use client";
 
-import RegistrationForm from "@/components/RegistrationForm";
+import EventListPage from "@/components/EventListPage";
 
 
 export default function Home() {
-  return <RegistrationForm />;
+  return <EventListPage />;
 }
