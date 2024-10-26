@@ -16,7 +16,7 @@ type Event {
   type Query {
     events: [Event!]!
   }
-    
+
   type Mutation {
     createEvent(
       title: String!
@@ -24,6 +24,7 @@ type Event {
       date: String!
       organizer: String!
     ): Event
+    }
 `;
 
 const resolvers = {
