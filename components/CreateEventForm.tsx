@@ -20,14 +20,6 @@ const CREATE_EVENT = gql`
     }
   }
 `;
-const RSVP_EVENT = gql`
-  mutation RsvpEvent($eventId: Int!) {
-    rsvpEvent(eventId: $eventId) {
-      id
-      isRsvped
-    }
-  }
-`;
 const CreateEventForm = () => {
   const client = useApolloClient();
 

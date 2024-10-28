@@ -1,8 +1,11 @@
 "use client";
 import React from "react";
-import {  useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { Button } from "./ui/button";
+import { Toggle } from "./ui/toggle";
 
 type Event = {
   id: number;
@@ -10,8 +13,13 @@ type Event = {
   description: string;
   date: string;
   organizer: string;
-  isRsvped?: boolean;
-  rsvpStatus?: string;
+};
+
+type Subscriber = {
+  id: number;
+  userId: number;
+  eventId: number;
+  status: string;
 };
 
 const GET_EVENTS = gql`
@@ -26,12 +34,52 @@ const GET_EVENTS = gql`
   }
 `;
 
+const GET_SUBSCRIBERS = gql`
+  query GetSubscribers($userId: Int!) {
+    subscribers(userId: $userId) {
+      id
+      userId
+      eventId
+      status
+    }
+  }
+`;
+
+const JOIN_EVENT = gql`
+  mutation JoinEvent($userId: Int!, $eventId: Int!) {
+    joinEvent(userId: $userId, eventId: $eventId) {
+      id
+      userId
+      eventId
+      status
+    }
+  }
+`;
+
+const UPDATE_JOIN_STATUS = gql`
+  mutation UpdateJoinStatus($id: Int!, $status: String!) {
+    updateJoinStatus(id: $id, status: $status) {
+      id
+      userId
+      eventId
+      status
+    }
+  }
+`;
 
 const getEvents = async (client: any) => {
   const { data } = await client.query({
     query: GET_EVENTS,
   });
   return data.events;
+};
+
+const getSubscribers = async (client: any, userId: number) => {
+  const { data } = await client.query({
+    query: GET_SUBSCRIBERS,
+    variables: { userId },
+  });
+  return data.subscribers;
 };
 
 const formatDate = (dateString: string) => {
@@ -51,27 +99,86 @@ const formatDate = (dateString: string) => {
     day: "numeric",
   });
 };
+
 const EventListPage = () => {
+  const queryClient = useQueryClient();
   const client = useApolloClient();
+  const { data: session } = useSession();
+  const userId = session?.user?.id ? parseInt(session.user.id) : null;
+
+
   const {
     data: events,
-    isLoading,
-    isError,
-    error,
+    isLoading: eventsLoading,
+    isError: eventsError,
+    error: eventsErrorDetails,
   } = useQuery<Event[]>({
     queryKey: ["events"],
     queryFn: () => getEvents(client),
   });
 
+  const {
+    data: subscribers,
+    isLoading: subscribersLoading,
+    isError: subscribersError,
+    error: subscribersErrorDetails,
+  } = useQuery<Subscriber[]>({
+    queryKey: ["subscribers", userId],
+    queryFn: () => getSubscribers(client, userId!),
+    enabled:!!userId
+  });
 
 
-  if (isLoading) {
+
+  const joinEventMutation = useMutation({
+    mutationFn: async (variables: { userId: number; eventId: number }) => {
+      const { data } = await client.mutate({
+        mutation: JOIN_EVENT,
+        variables,
+      });
+      return data.joinEvent;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["subscribers", userId] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
+  });
+
+  const updateJoinStatusMutation = useMutation({
+    mutationFn: async (variables: { id: number; status: string }) => {
+      const { data } = await client.mutate({
+        mutation: UPDATE_JOIN_STATUS,
+        variables,
+      });
+      return data.updateJoinStatus;
+    },
+    onSuccess: () => {
+
+      queryClient.invalidateQueries({ queryKey: ["subscribers", userId] });
+    },
+  });
+
+  if (eventsLoading || subscribersLoading) {
     return <div>Loading...</div>;
   }
 
-  if (isError) {
-    return <div>Error: {error.message}</div>;
+  if (eventsError || subscribersError) {
+    return <div>Error: Unable to load events. Please try again later.</div>;
   }
+
+  const handleJoinEvent = async (eventId: number) => {
+    if (userId) {
+      try {
+        await joinEventMutation.mutateAsync({ userId, eventId });
+      } catch (error) {
+        console.error("Error joining event:", error);
+      }
+    }
+  };
+
+  const handleUpdateStatus = (subscriberId: number, newStatus: string) => {
+    updateJoinStatusMutation.mutate({ id: subscriberId, status: newStatus });
+  };
 
   return (
     <div className="flex items-center justify-center">
@@ -79,32 +186,77 @@ const EventListPage = () => {
         <h2 className="text-xl font-semibold mb-4">List of Events</h2>
         {events && events.length > 0 ? (
           <div>
-            {events.map((event) => (
-              <div
-                key={event.id}
-                className="mb-4 border border-gray-300 rounded p-5"
-              >
-                <div className="font-semibold">
-                  Title: <span className="font-light">{event.title}</span>
+            {events.map((event) => {
+              const subscriber = subscribers?.find(
+                (s) => s.eventId === event.id
+              );
+              return (
+                <div
+                  key={event.id}
+                  className="mb-4 border border-gray-300 rounded p-5"
+                >
+                  <div className="font-semibold">
+                    Title: <span className="font-light">{event.title}</span>
+                  </div>
+                  <div className="font-semibold">
+                    Description:
+                    <span className="font-light">{event.description}</span>
+                  </div>
+                  <div className="font-semibold">
+                    Date:
+                    <span className="font-light">{formatDate(event.date)}</span>
+                  </div>
+                  <div className="font-semibold">
+                    Organizer:
+                    <span className="font-light">{event.organizer}</span>
+                  </div>
+
+                  {userId && (
+                    <div className="mt-4">
+                      {subscriber ? (
+                        <div className="flex space-x-2">
+                          <Toggle
+                            pressed={subscriber.status === "join"}
+                            onClick={() =>
+                              handleUpdateStatus(subscriber.id, "join")
+                            }
+                            variant="outline"
+                          >
+                            Join
+                          </Toggle>
+                          <Toggle
+                            pressed={subscriber.status === "maybe"}
+                            onClick={() =>
+                              handleUpdateStatus(subscriber.id, "maybe")
+                            }
+                            variant="outline"
+                          >
+                            Maybe
+                          </Toggle>
+                          <Toggle
+                            pressed={subscriber.status === "cancel"}
+                            onClick={() =>
+                              handleUpdateStatus(subscriber.id, "cancel")
+                            }
+                            variant="outline"
+                          >
+                            Cancel
+                          </Toggle>
+                        </div>
+                      ) : (
+                        <Button onClick={() => handleJoinEvent(event.id)}>
+                          Join Event
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="text-[#649C9E] font-semibold mt-4">
+                    <Link href={`/events/${event.id}`}>See event details</Link>
+                  </div>
                 </div>
-                <div className="font-semibold">
-                  Description:{" "}
-                  <span className="font-light">{event.description}</span>
-                </div>
-                <div className="font-semibold">
-                  Date:{" "}
-                  <span className="font-light">{formatDate(event.date)}</span>
-                </div>
-                <div className="font-semibold">
-                  Organizer:{" "}
-                  <span className="font-light">{event.organizer}</span>
-                </div>
-          
-                <div className="text-[#649C9E] font-semibold mt-4">
-                  <Link href={`/events/${event.id}`}>See event details</Link>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p>No events found.</p>
