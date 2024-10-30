@@ -20,7 +20,7 @@ const typeDefs = gql`
     organizer: String!
   }
 
-  type Subscriber {
+  type Subscription {
     id: Int!
     userId: Int!
     eventId: Int!
@@ -29,7 +29,7 @@ const typeDefs = gql`
 
   type Query {
     events: [Event!]!
-    subscribers(userId: Int!): [Subscriber!]!
+    subscriptions(userId: Int!): [Subscription!]!
   }
 
   type Mutation {
@@ -39,8 +39,8 @@ const typeDefs = gql`
       date: String!
       organizer: String!
     ): Event
-    joinEvent(userId: Int!, eventId: Int!): Subscriber
-    updateJoinStatus(id: Int!, status: String!): Subscriber
+    joinEvent(userId: Int!, eventId: Int!): Subscription
+    updateJoinStatus(id: Int!, status: String!): Subscription
   }
 `;
 
@@ -55,17 +55,17 @@ const resolvers = {
         throw new Error("Failed to fetch events");
       }
     },
-    subscribers: async (_: unknown, { userId }: { userId: number }) => {
+    subscriptions: async (_: unknown, { userId }: { userId: number }) => {
       try {
         const subscribers = await sql`
           SELECT id, user_id as "userId", event_id as "eventId", status
-          FROM subscribers
+          FROM subscriptions
           WHERE user_id = ${userId}
         `;
         return subscribers.rows;
       } catch (error) {
-        console.error("Error fetching subscribers:", error);
-        throw new Error("Failed to fetch subscribers");
+        console.error("Error fetching subscriptions:", error);
+        throw new Error("Failed to fetch subscriptions");
       }
     },
   },
@@ -92,7 +92,7 @@ const resolvers = {
       { userId, eventId }: { userId: number; eventId: number }
     ) => {
       const existingSubscription = await sql`
-        SELECT id FROM subscribers
+        SELECT id FROM subscriptions
         WHERE user_id = ${userId} AND event_id = ${eventId}
       `;
 
@@ -101,8 +101,8 @@ const resolvers = {
       }
 
       const result = await sql`
-        INSERT INTO subscribers (user_id, event_id, status)
-        VALUES (${userId}, ${eventId}, 'joined')
+        INSERT INTO subscriptions (user_id, event_id, status)
+        VALUES (${userId}, ${eventId}, 'join')
         RETURNING id, user_id AS "userId", event_id AS "eventId", status
       `;
       return result.rows[0];
@@ -112,7 +112,7 @@ const resolvers = {
       { id, status }: { id: number; status: string }
     ) => {
       const result = await sql`
-        UPDATE subscribers
+        UPDATE subscriptions
         SET status = ${status}
         WHERE id = ${id}
         RETURNING id, user_id AS "userId", event_id AS "eventId", status

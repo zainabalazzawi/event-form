@@ -15,7 +15,7 @@ type Event = {
   organizer: string;
 };
 
-type Subscriber = {
+type Subscription = {
   id: number;
   userId: number;
   eventId: number;
@@ -34,9 +34,9 @@ const GET_EVENTS = gql`
   }
 `;
 
-const GET_SUBSCRIBERS = gql`
-  query GetSubscribers($userId: Int!) {
-    subscribers(userId: $userId) {
+const GET_SUBSCRIPTIONS = gql`
+  query Getsubscriptions($userId: Int!) {
+    subscriptions(userId: $userId) {
       id
       userId
       eventId
@@ -74,12 +74,12 @@ const getEvents = async (client: any) => {
   return data.events;
 };
 
-const getSubscribers = async (client: any, userId: number) => {
+const getSubscriptions = async (client: any, userId: number) => {
   const { data } = await client.query({
-    query: GET_SUBSCRIBERS,
+    query: GET_SUBSCRIPTIONS,
     variables: { userId },
   });
-  return data.subscribers;
+  return data.subscriptions;
 };
 
 const formatDate = (dateString: string) => {
@@ -106,29 +106,24 @@ const EventListPage = () => {
   const { data: session } = useSession();
   const userId = session?.user?.id ? parseInt(session.user.id) : null;
 
-
   const {
     data: events,
     isLoading: eventsLoading,
     isError: eventsError,
-    error: eventsErrorDetails,
   } = useQuery<Event[]>({
     queryKey: ["events"],
     queryFn: () => getEvents(client),
   });
 
   const {
-    data: subscribers,
-    isLoading: subscribersLoading,
-    isError: subscribersError,
-    error: subscribersErrorDetails,
-  } = useQuery<Subscriber[]>({
-    queryKey: ["subscribers", userId],
-    queryFn: () => getSubscribers(client, userId!),
-    enabled:!!userId
+    data: subscriptions,
+    isLoading: subscriptionsLoading,
+    isError: subscriptionsError,
+  } = useQuery<Subscription[]>({
+    queryKey: ["subscriptions", userId],
+    queryFn: () => getSubscriptions(client, userId!),
+    enabled: !!userId,
   });
-
-
 
   const joinEventMutation = useMutation({
     mutationFn: async (variables: { userId: number; eventId: number }) => {
@@ -153,16 +148,16 @@ const EventListPage = () => {
       return data.updateJoinStatus;
     },
     onSuccess: () => {
-
-      queryClient.invalidateQueries({ queryKey: ["subscribers", userId] });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions", userId] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
     },
   });
 
-  if (eventsLoading || subscribersLoading) {
+  if (eventsLoading || subscriptionsLoading) {
     return <div>Loading...</div>;
   }
 
-  if (eventsError || subscribersError) {
+  if (eventsError || subscriptionsError) {
     return <div>Error: Unable to load events. Please try again later.</div>;
   }
 
@@ -187,7 +182,7 @@ const EventListPage = () => {
         {events && events.length > 0 ? (
           <div>
             {events.map((event) => {
-              const subscriber = subscribers?.find(
+              const subscription = subscriptions?.find(
                 (s) => s.eventId === event.id
               );
               return (
@@ -213,30 +208,30 @@ const EventListPage = () => {
 
                   {userId && (
                     <div className="mt-4">
-                      {subscriber ? (
+                      {subscription ? (
                         <div className="flex space-x-2">
                           <Toggle
-                            pressed={subscriber.status === "join"}
+                            pressed={subscription.status === "join"}
                             onClick={() =>
-                              handleUpdateStatus(subscriber.id, "join")
+                              handleUpdateStatus(subscription.id, "join")
                             }
                             variant="outline"
                           >
                             Join
                           </Toggle>
                           <Toggle
-                            pressed={subscriber.status === "maybe"}
+                            pressed={subscription.status === "maybe"}
                             onClick={() =>
-                              handleUpdateStatus(subscriber.id, "maybe")
+                              handleUpdateStatus(subscription.id, "maybe")
                             }
                             variant="outline"
                           >
                             Maybe
                           </Toggle>
                           <Toggle
-                            pressed={subscriber.status === "cancel"}
+                            pressed={subscription.status === "cancel"}
                             onClick={() =>
-                              handleUpdateStatus(subscriber.id, "cancel")
+                              handleUpdateStatus(subscription.id, "cancel")
                             }
                             variant="outline"
                           >
