@@ -133,9 +133,11 @@ const EventListPage = () => {
       });
       return data.joinEvent;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscribers", userId] });
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        ["subscriptions", userId],
+        (old: Subscription[] = []) => [...old, data]
+      );
     },
   });
 
