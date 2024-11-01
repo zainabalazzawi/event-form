@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Toggle } from "./ui/toggle";
+import { useRouter } from "next/navigation";
 
 type Event = {
   id: number;
@@ -101,6 +102,7 @@ const formatDate = (dateString: string) => {
 };
 
 const EventListPage = () => {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const client = useApolloClient();
   const { data: session } = useSession();
@@ -247,7 +249,11 @@ const EventListPage = () => {
                       )}
                     </div>
                   )}
-
+                  {!userId && (
+                    <Button  className='mt-3' onClick={() => router.push("/login")}>
+                      Join Event
+                    </Button>
+                  )}
                   <div className="text-[#649C9E] font-semibold mt-4">
                     <Link href={`/events/${event.id}`}>See event details</Link>
                   </div>
