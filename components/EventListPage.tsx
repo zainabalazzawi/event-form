@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Toggle } from "./ui/toggle";
 import { useRouter } from "next/navigation";
+import SignInDialog from "./SignInDialog";
 
 type Event = {
   id: number;
@@ -249,11 +250,7 @@ const EventListPage = () => {
                       )}
                     </div>
                   )}
-                  {!userId && (
-                    <Button  className='mt-3' onClick={() => router.push("/login")}>
-                      Join Event
-                    </Button>
-                  )}
+                  {!userId && <SignInDialog />}
                   <div className="text-[#649C9E] font-semibold mt-4">
                     <Link href={`/events/${event.id}`}>See event details</Link>
                   </div>
