@@ -250,7 +250,11 @@ const EventListPage = () => {
                       )}
                     </div>
                   )}
-                  {!userId && <SignInDialog />}
+                  {!userId && (
+                    <SignInDialog>
+                      <Button className="mt-3">Join Event</Button>
+                    </SignInDialog>
+                  )}
                   <div className="text-[#649C9E] font-semibold mt-4">
                     <Link href={`/events/${event.id}`}>See event details</Link>
                   </div>

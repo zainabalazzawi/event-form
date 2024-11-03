@@ -10,7 +10,7 @@ export type LoginFormData = {
   password: string;
 };
 
-const LoginForm = () => {
+const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const form = useForm<LoginFormData>({
     defaultValues: {
       email: "",
@@ -37,6 +37,11 @@ const LoginForm = () => {
   
   const mutation = useMutation({
     mutationFn: loginMutation,
+    onSuccess: () => {
+        if (onSuccess) {
+          onSuccess();
+        }
+      }
   });
 
   const onHandleSubmit = (data: LoginFormData) => {

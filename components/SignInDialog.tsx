@@ -7,23 +7,31 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import LoginForm from "@/app/components/LoginForm";
 import SignupForm from "@/app/components/SignupForm";
+import { useRouter } from "next/navigation";
 
-const SignInDialog = () => {
+type SignInDialogProps = {
+  children: ReactNode;
+  redirectUrl?: string;
+};
+
+const SignInDialog = ({ children, redirectUrl}: SignInDialogProps) => {
+    const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
   const [open, setOpen] = useState(false);
-
-  const handleSignupSuccess = () => {
-    setTimeout(() => {
-      setIsSignUp(false);
-    }, 2000);
+  
+  const handleLoginSuccess = () => {
+    setOpen(false);
+    if (redirectUrl) {
+      router.push(redirectUrl);
+    }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button className="mt-3">Join Event</Button>
+      <DialogTrigger asChild>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -37,14 +45,14 @@ const SignInDialog = () => {
 
         {!isSignUp ? (
           <>
-            <LoginForm />
+            <LoginForm onSuccess={handleLoginSuccess} />
             <Button variant="outline" onClick={() => setIsSignUp(true)}>
               Create an account
             </Button>
           </>
         ) : (
           <>
-            <SignupForm onSuccess={handleSignupSuccess} />
+            <SignupForm onSuccess={() => setIsSignUp(false)} />
             <Button variant="outline" onClick={() => setIsSignUp(false)}>
               Back to sign in
             </Button>
