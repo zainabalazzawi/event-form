@@ -8,6 +8,7 @@ import { Button } from "./ui/button";
 import { Toggle } from "./ui/toggle";
 import { useRouter } from "next/navigation";
 import SignInDialog from "./SignInDialog";
+import { useSearchStore } from "@/store/searchStore";
 
 type Event = {
   id: number;
@@ -108,6 +109,7 @@ const EventListPage = () => {
   const client = useApolloClient();
   const { data: session } = useSession();
   const userId = session?.user?.id ? parseInt(session.user.id) : null;
+  const { searchQuery } = useSearchStore();
 
   const {
     data: events,
@@ -117,6 +119,12 @@ const EventListPage = () => {
     queryKey: ["events"],
     queryFn: () => getEvents(client),
   });
+
+  const filteredEvents = events?.filter((event) =>
+    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const {
     data: subscriptions,
@@ -181,89 +189,88 @@ const EventListPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center">
-      <div className="mt-10 p-5 border border-gray-300 rounded w-[50%]">
-        <h2 className="text-xl font-semibold mb-4">List of Events</h2>
-        {events && events.length > 0 ? (
-          <div>
-            {events.map((event) => {
-              const subscription = subscriptions?.find(
-                (s) => s.eventId === event.id
-              );
-              return (
-                <div
-                  key={event.id}
-                  className="mb-4 border border-gray-300 rounded p-5"
-                >
-                  <div className="font-semibold">
-                    Title: <span className="font-light">{event.title}</span>
-                  </div>
-                  <div className="font-semibold">
-                    Description:
-                    <span className="font-light">{event.description}</span>
-                  </div>
-                  <div className="font-semibold">
-                    Date:
-                    <span className="font-light">{formatDate(event.date)}</span>
-                  </div>
-                  <div className="font-semibold">
-                    Organizer:
-                    <span className="font-light">{event.organizer}</span>
-                  </div>
-
-                  {userId && (
-                    <div className="mt-4">
-                      {subscription ? (
-                        <div className="flex space-x-2">
-                          <Toggle
-                            pressed={subscription.status === "join"}
-                            onClick={() =>
-                              handleUpdateStatus(subscription.id, "join")
-                            }
-                            variant="outline"
-                          >
-                            Join
-                          </Toggle>
-                          <Toggle
-                            pressed={subscription.status === "maybe"}
-                            onClick={() =>
-                              handleUpdateStatus(subscription.id, "maybe")
-                            }
-                            variant="outline"
-                          >
-                            Maybe
-                          </Toggle>
-                          <Toggle
-                            pressed={subscription.status === "cancel"}
-                            onClick={() =>
-                              handleUpdateStatus(subscription.id, "cancel")
-                            }
-                            variant="outline"
-                          >
-                            Cancel
-                          </Toggle>
-                        </div>
-                      ) : (
-                        <Button onClick={() => handleJoinEvent(event.id)}>
-                          Join Event
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                  {!userId && (
-                    <SignInDialog>
-                      <Button className="mt-3">Join Event</Button>
-                    </SignInDialog>
-                  )}
-                  <div className="text-[#649C9E] font-semibold mt-4">
-                    <Link href={`/events/${event.id}`}>See event details</Link>
-                  </div>
+    <div>
+      {eventsLoading && <div>Loading...</div>}
+      {eventsError && <div>Error loading events</div>}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredEvents && filteredEvents.length > 0 ? (
+          filteredEvents.map((event) => {
+            const subscription = subscriptions?.find(
+              (s) => s.eventId === event.id
+            );
+            return (
+              <div
+                key={event.id}
+                className="mb-4 border border-gray-300 rounded p-5"
+              >
+                <div className="font-semibold">
+                  Title: <span className="font-light">{event.title}</span>
                 </div>
-              );
-            })}
-          </div>
+                <div className="font-semibold">
+                  Description:
+                  <span className="font-light">{event.description}</span>
+                </div>
+                <div className="font-semibold">
+                  Date:
+                  <span className="font-light">{formatDate(event.date)}</span>
+                </div>
+                <div className="font-semibold">
+                  Organizer:
+                  <span className="font-light">{event.organizer}</span>
+                </div>
+
+                {userId && (
+                  <div className="mt-4">
+                    {subscription ? (
+                      <div className="flex space-x-2">
+                        <Toggle
+                          pressed={subscription.status === "join"}
+                          onClick={() =>
+                            handleUpdateStatus(subscription.id, "join")
+                          }
+                          variant="outline"
+                        >
+                          Join
+                        </Toggle>
+                        <Toggle
+                          pressed={subscription.status === "maybe"}
+                          onClick={() =>
+                            handleUpdateStatus(subscription.id, "maybe")
+                          }
+                          variant="outline"
+                        >
+                          Maybe
+                        </Toggle>
+                        <Toggle
+                          pressed={subscription.status === "cancel"}
+                          onClick={() =>
+                            handleUpdateStatus(subscription.id, "cancel")
+                          }
+                          variant="outline"
+                        >
+                          Cancel
+                        </Toggle>
+                      </div>
+                    ) : (
+                      <Button onClick={() => handleJoinEvent(event.id)}>
+                        Join Event
+                      </Button>
+                    )}
+                  </div>
+                )}
+                {!userId && (
+                  <SignInDialog>
+                    <Button className="mt-3">Join Event</Button>
+                  </SignInDialog>
+                )}
+                <div className="text-[#649C9E] font-semibold mt-4">
+                  <Link href={`/events/${event.id}`}>See event details</Link>
+                </div>
+              </div>
+            );
+          })
         ) : (
-          <p>No events found.</p>
+          <div>No events found</div>
         )}
       </div>
     </div>
