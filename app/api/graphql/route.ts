@@ -69,24 +69,28 @@ const resolvers = {
       }
     },
   },
-  Mutation: {
-    createEvent: async (
-      _: unknown,
-      {
-        title,
-        description,
-        date,
-        organizer,
-      }: Event
-    ) => {
-      const timestamp = new Date(date).getTime().toString();
-      const event = await sql`
-        INSERT INTO events (title, description, date, organizer)
-        VALUES (${title}, ${description}, ${timestamp}, ${organizer})
-        RETURNING id, title, description, date, organizer
-      `;
-      return event.rows[0];
-    },
+    Mutation: {
+      createEvent: async (
+        _: unknown,
+        {
+          title,
+          description,
+          date,
+          organizer,
+        }: Event
+      ) => {
+        try {
+          const event = await sql`
+            INSERT INTO events (title, description, date, organizer)
+            VALUES (${title}, ${description}, ${date}, ${organizer})
+            RETURNING id, title, description, date, organizer
+          `;
+          return event.rows[0];
+        } catch (error) {
+          console.error("Error creating event:", error);
+          throw new Error("Failed to create event");
+        }
+      },
     joinEvent: async (
       _: unknown,
       { userId, eventId }: { userId: number; eventId: number }
