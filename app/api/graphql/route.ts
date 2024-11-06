@@ -29,6 +29,7 @@ const typeDefs = gql`
 
   type Query {
     events: [Event!]!
+    event(id: Int!): Event
     subscriptions(userId: Int!): [Subscription!]!
   }
 
@@ -68,9 +69,26 @@ const resolvers = {
         throw new Error("Failed to fetch subscriptions");
       }
     },
+    event: async (_: unknown, { id }: { id: number }) => {
+      try {
+        const event = await sql`
+          SELECT * FROM events 
+          WHERE id = ${id}
+        `;
+        
+        if (event.rows.length === 0) {
+          throw new Error("Event not found");
+        }
+        
+        return event.rows[0];
+      } catch (error) {
+        console.error("Error fetching event:", error);
+        throw new Error("Failed to fetch event");
+      }
+    },
   },
     Mutation: {
-      createEvent: async (
+    createEvent: async (
         _: unknown,
         {
           title,

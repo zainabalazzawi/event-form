@@ -9,6 +9,7 @@ import { Toggle } from "./ui/toggle";
 import { useRouter } from "next/navigation";
 import SignInDialog from "./SignInDialog";
 import { useSearchStore } from "@/store/searchStore";
+import { formatDate } from "@/lib/utils";
 
 type Event = {
   id: number;
@@ -83,24 +84,6 @@ const getSubscriptions = async (client: any, userId: number) => {
     variables: { userId },
   });
   return data.subscriptions;
-};
-
-const formatDate = (dateString: string) => {
-  let date = new Date(dateString);
-
-  if (isNaN(date.getTime())) {
-    date = new Date(parseInt(dateString));
-  }
-
-  if (isNaN(date.getTime())) {
-    return "Date not available";
-  }
-
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 };
 
 const EventListPage = () => {
