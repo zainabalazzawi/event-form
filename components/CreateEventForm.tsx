@@ -6,12 +6,22 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 
 const CREATE_EVENT = gql`
-  mutation CreateEvent($title: String!, $description: String!, $date: String!, $organizer: String!) {
-    createEvent(title: $title, description: $description, date: $date, organizer: $organizer) {
+  mutation CreateEvent(
+    $title: String!,
+    $description: String!,
+    $date: String!,
+    $organizer: String!,
+  ) {
+    createEvent(
+      title: $title,
+      description: $description,
+      date: $date,
+      organizer: $organizer,
+    ) {
       id
       title
       description

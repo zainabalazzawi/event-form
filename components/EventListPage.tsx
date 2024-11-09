@@ -17,6 +17,7 @@ type Event = {
   description: string;
   date: string;
   organizer: string;
+  attendeeCount: number;
 };
 
 type Subscription = {
@@ -34,6 +35,7 @@ const GET_EVENTS = gql`
       description
       date
       organizer
+      attendeeCount
     }
   }
 `;
@@ -103,10 +105,11 @@ const EventListPage = () => {
     queryFn: () => getEvents(client),
   });
 
-  const filteredEvents = events?.filter((event) =>
-    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredEvents = events?.filter(
+    (event) =>
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const {
@@ -200,6 +203,10 @@ const EventListPage = () => {
                 <div className="font-semibold">
                   Organizer:
                   <span className="font-light">{event.organizer}</span>
+                </div>
+                <div className="font-semibold mt-2">
+                  Attendees:
+                  <span className="font-light"> {event.attendeeCount}</span>
                 </div>
 
                 {userId && (

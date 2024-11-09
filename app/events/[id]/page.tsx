@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { formatDate } from "@/lib/utils";
+import Link from "next/link";
 
 const GET_EVENT_BY_ID = gql`
   query GetEventById($id: Int!) {
@@ -59,6 +60,10 @@ export default function EventPage() {
           <h2 className="font-semibold">Organizer:</h2>
           <p>{event.organizer}</p>
         </div>
+      </div>
+
+      <div className="text-[#649C9E] font-semibold mt-4">
+        <Link href={`/events`}>Back to event list</Link>
       </div>
     </div>
   );

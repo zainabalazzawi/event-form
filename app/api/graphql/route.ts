@@ -9,6 +9,7 @@ type Event = {
   description: string;
   date: string;
   organizer: string;
+  attendeeCount?: number;
 };
 
 const typeDefs = gql`
@@ -18,6 +19,7 @@ const typeDefs = gql`
     description: String!
     date: String!
     organizer: String!
+    attendeeCount: Int!
   }
 
   type Subscription {
@@ -31,6 +33,13 @@ const typeDefs = gql`
     events: [Event!]!
     event(id: Int!): Event
     subscriptions(userId: Int!): [Subscription!]!
+  }
+
+  input CreateEventInput {
+    title: String!
+    description: String!
+    date: String!
+    organizer: String!
   }
 
   type Mutation {
@@ -49,7 +58,14 @@ const resolvers = {
   Query: {
     events: async () => {
       try {
-        const events = await sql`SELECT * FROM events ORDER BY date DESC`;
+        const events = await sql`
+          SELECT e.*, 
+          COUNT(DISTINCT CASE WHEN s.status = 'join' THEN s.user_id END) as "attendeeCount"
+          FROM events e
+          LEFT JOIN subscriptions s ON e.id = s.event_id
+          GROUP BY e.id, e.title, e.description, e.date, e.organizer
+          ORDER BY e.date DESC
+        `;
         return events.rows;
       } catch (error) {
         console.error("Error fetching events:", error);
@@ -75,11 +91,11 @@ const resolvers = {
           SELECT * FROM events 
           WHERE id = ${id}
         `;
-        
+
         if (event.rows.length === 0) {
           throw new Error("Event not found");
         }
-        
+
         return event.rows[0];
       } catch (error) {
         console.error("Error fetching event:", error);
@@ -87,28 +103,23 @@ const resolvers = {
       }
     },
   },
-    Mutation: {
+  Mutation: {
     createEvent: async (
-        _: unknown,
-        {
-          title,
-          description,
-          date,
-          organizer,
-        }: Event
-      ) => {
-        try {
-          const event = await sql`
+      _: unknown,
+      { title, description, date, organizer }: Event
+    ) => {
+      try {
+        const event = await sql`
             INSERT INTO events (title, description, date, organizer)
             VALUES (${title}, ${description}, ${date}, ${organizer})
             RETURNING id, title, description, date, organizer
           `;
-          return event.rows[0];
-        } catch (error) {
-          console.error("Error creating event:", error);
-          throw new Error("Failed to create event");
-        }
-      },
+        return event.rows[0];
+      } catch (error) {
+        console.error("Error creating event:", error);
+        throw new Error("Failed to create event");
+      }
+    },
     joinEvent: async (
       _: unknown,
       { userId, eventId }: { userId: number; eventId: number }
