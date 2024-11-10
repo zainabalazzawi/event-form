@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import SignInDialog from "./SignInDialog";
 import { useSearchStore } from "@/store/searchStore";
 import { formatDate } from "@/lib/utils";
+import EditEventForm from "./EditEventForm";
 
 type Event = {
   id: number;
@@ -95,6 +96,7 @@ const EventListPage = () => {
   const { data: session } = useSession();
   const userId = session?.user?.id ? parseInt(session.user.id) : null;
   const { searchQuery } = useSearchStore();
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   const {
     data: events,
@@ -211,6 +213,13 @@ const EventListPage = () => {
 
                 {userId && (
                   <div className="mt-4">
+                    <Button
+                      onClick={() => setEditingEvent(event)}
+                      variant="outline"
+                      className="mt-2"
+                    >
+                      Edit Event
+                    </Button>
                     {subscription ? (
                       <div className="flex space-x-2">
                         <Toggle
@@ -263,6 +272,13 @@ const EventListPage = () => {
           <div>No events found</div>
         )}
       </div>
+      {editingEvent && (
+        <EditEventForm
+          event={editingEvent}
+          isOpen={!!editingEvent}
+          onClose={() => setEditingEvent(null)}
+        />
+      )}
     </div>
   );
 };

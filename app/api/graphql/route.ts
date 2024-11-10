@@ -49,6 +49,12 @@ const typeDefs = gql`
       date: String!
       organizer: String!
     ): Event
+    updateEvent(
+      id: Int!
+      title: String
+      description: String
+      date: String
+    ): Event
     joinEvent(userId: Int!, eventId: Int!): Subscription
     updateJoinStatus(id: Int!, status: String!): Subscription
   }
@@ -158,6 +164,37 @@ const resolvers = {
       }
 
       return result.rows[0];
+    },
+    updateEvent: async (
+      _: unknown,
+      {
+        id,
+        title,
+        description,
+        date,
+        organizer,
+      }: Partial<Event> & { id: number }
+    ) => {
+      try {
+        const event = await sql`
+          UPDATE events
+          SET 
+            title = COALESCE(${title}, title),
+            description = COALESCE(${description}, description),
+            date = COALESCE(${date}, date)
+          WHERE id = ${id}
+          RETURNING id, title, description, date, organizer
+        `;
+
+        if (event.rows.length === 0) {
+          throw new Error("Event not found");
+        }
+
+        return event.rows[0];
+      } catch (error) {
+        console.error("Error updating event:", error);
+        throw new Error("Failed to update event");
+      }
     },
   },
 };
