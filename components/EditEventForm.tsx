@@ -51,12 +51,18 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
   const client = useApolloClient();
   const queryClient = useQueryClient();
 
+  // Format the date to YYYY-MM-DD for the date input
+  const formatDateForInput = (dateString: string) => {
+    const date = new Date(isNaN(Number(dateString)) ? dateString : Number(dateString));
+    return date.toISOString().split('T')[0];
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: event.title,
       description: event.description,
-      date: event.date,
+      date: formatDateForInput(event.date),
     },
   });
 

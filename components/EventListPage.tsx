@@ -11,6 +11,7 @@ import SignInDialog from "./SignInDialog";
 import { useSearchStore } from "@/store/searchStore";
 import { formatDate } from "@/lib/utils";
 import EditEventForm from "./EditEventForm";
+import { Calendar, CircleCheck, Pencil } from "lucide-react";
 
 type Event = {
   id: number;
@@ -19,7 +20,7 @@ type Event = {
   date: string;
   organizer: string;
   attendeeCount: number;
-  email: string;  
+  email: string;
 };
 
 type Subscription = {
@@ -38,7 +39,7 @@ const GET_EVENTS = gql`
       date
       organizer
       attendeeCount
-      email   
+      email
     }
   }
 `;
@@ -191,39 +192,42 @@ const EventListPage = () => {
             return (
               <div
                 key={event.id}
-                className="mb-4 border border-gray-300 rounded p-5"
+                className="mb-4 border border-gray-300 rounded-lg p-5 relative"
               >
-                <div className="font-semibold">
-                  Title: <span className="font-light">{event.title}</span>
+                {userId &&
+                  session?.user?.email?.toLowerCase() ===
+                    event.email?.toLowerCase() && (
+                    <Pencil
+                      size={15}
+                      onClick={() => setEditingEvent(event)}
+                      className="absolute top-4 right-4 cursor-pointer hover:text-[#649C9E]"
+                    />
+                  )}
+
+                <div className="font-semibold hover:text-[#649C9E] hover:underline">
+                  <Link href={`/events/${event.id}`}>
+                    <span className="font-bold text-xl">{event.title}</span>
+                  </Link>
                 </div>
-                <div className="font-semibold">
-                  Description:
-                  <span className="font-light">{event.description}</span>
+                <div className="text-base text-slate-600 font-semibold">
+                  Hosted by:&nbsp;{event.organizer}
                 </div>
-                <div className="font-semibold">
-                  Date:
-                  <span className="font-light">{formatDate(event.date)}</span>
+
+                <div className="flex felx-row items-center gap-3">
+                  <Calendar size={15} className="text-gray-600" />
+                  <span className="font-light"> {formatDate(event.date)}</span>
                 </div>
-                <div className="font-semibold">
-                  Organizer:
-                  <span className="font-light">{event.organizer}</span>
-                </div>
-                <div className="font-semibold mt-2">
-                  Attendees:
-                  <span className="font-light"> {event.attendeeCount}</span>
+
+                <div className="flex felx-row items-center gap-3">
+                  <CircleCheck size={15} className="text-gray-600" />
+                  <span className="font-light">
+                    {" "}
+                    {event.attendeeCount} going
+                  </span>
                 </div>
 
                 {userId && (
                   <div className="mt-4">
-
-                    {session?.user?.email?.toLowerCase() === event.email?.toLowerCase() && (
-                    <Button
-                      onClick={() => setEditingEvent(event)}
-                      variant="outline"
-                      className="mt-2"
-                    >
-                      Edit Event
-                    </Button>)}
                     {subscription ? (
                       <div className="flex space-x-2">
                         <Toggle
@@ -266,9 +270,6 @@ const EventListPage = () => {
                     <Button className="mt-3">Join Event</Button>
                   </SignInDialog>
                 )}
-                <div className="text-[#649C9E] font-semibold mt-4">
-                  <Link href={`/events/${event.id}`}>See event details</Link>
-                </div>
               </div>
             );
           })

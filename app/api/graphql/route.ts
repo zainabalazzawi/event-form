@@ -180,12 +180,14 @@ const resolvers = {
       }: Partial<Event> & { id: number }
     ) => {
       try {
+        const formattedDate = date ? new Date(parseInt(date)).toISOString() : undefined;
+
         const event = await sql`
           UPDATE events
           SET 
             title = COALESCE(${title}, title),
             description = COALESCE(${description}, description),
-            date = COALESCE(${date}, date)
+            date = COALESCE(${formattedDate}, date)
           WHERE id = ${id}
           RETURNING id, title, description, date, organizer, email
         `;
