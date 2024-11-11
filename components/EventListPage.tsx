@@ -19,6 +19,7 @@ type Event = {
   date: string;
   organizer: string;
   attendeeCount: number;
+  email: string;  
 };
 
 type Subscription = {
@@ -37,6 +38,7 @@ const GET_EVENTS = gql`
       date
       organizer
       attendeeCount
+      email   
     }
   }
 `;
@@ -213,13 +215,15 @@ const EventListPage = () => {
 
                 {userId && (
                   <div className="mt-4">
+
+                    {session?.user?.email?.toLowerCase() === event.email?.toLowerCase() && (
                     <Button
                       onClick={() => setEditingEvent(event)}
                       variant="outline"
                       className="mt-2"
                     >
                       Edit Event
-                    </Button>
+                    </Button>)}
                     {subscription ? (
                       <div className="flex space-x-2">
                         <Toggle

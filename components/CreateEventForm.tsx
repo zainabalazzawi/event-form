@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
+import { useSession } from "next-auth/react";
 
 const CREATE_EVENT = gql`
   mutation CreateEvent(
@@ -15,12 +16,14 @@ const CREATE_EVENT = gql`
     $description: String!,
     $date: String!,
     $organizer: String!,
+    $email: String!,
   ) {
     createEvent(
       title: $title,
       description: $description,
       date: $date,
       organizer: $organizer,
+      email: $email,
     ) {
       id
       title
@@ -32,11 +35,14 @@ const CREATE_EVENT = gql`
 `;
 const CreateEventForm = () => {
   const client = useApolloClient();
+  const { data: session } = useSession();
+
   const formSchema = z.object({
     title: z.string().min(1, { message: "Title is required" }),
     description: z.string().min(1, { message: "Description is required" }),
     date: z.string().min(1, { message: "Date is required" }),
     organizer: z.string().min(1, { message: "Organizer is required" }),
+    email: z.string().min(1, { message: "Email is required" }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -46,6 +52,7 @@ const CreateEventForm = () => {
       description: "",
       date: "",
       organizer: "",
+      email: session?.user?.email || "",
     },
   });
 
@@ -56,6 +63,8 @@ const CreateEventForm = () => {
   } = form;
 
   const createEventMutation = async (fields: z.infer<typeof formSchema>) => {
+    if (!session?.user?.email) return;
+    
     const { data } = await client.mutate({
       mutation: CREATE_EVENT,
       variables: {
@@ -63,6 +72,7 @@ const CreateEventForm = () => {
         description: fields.description,
         date: fields.date,
         organizer: fields.organizer,
+        email: session.user.email,
       },
     });
     return data.createEvent;
@@ -120,6 +130,17 @@ const CreateEventForm = () => {
               <Input {...register("organizer")} />
               <FormMessage>
                 {errors.organizer && <span>{errors.organizer.message}</span>}
+              </FormMessage>
+            </FormItem>
+            <FormItem className="my-5">
+              <FormLabel>Email</FormLabel>
+              <Input 
+                {...register("email")} 
+                value={session?.user?.email || ""}
+                disabled
+              />
+              <FormMessage>
+                {errors.email && <span>{errors.email.message}</span>}
               </FormMessage>
             </FormItem>
             <Button type="submit" className="mt-6">

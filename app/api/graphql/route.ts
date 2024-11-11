@@ -9,6 +9,7 @@ type Event = {
   description: string;
   date: string;
   organizer: string;
+  email: string;
   attendeeCount?: number;
 };
 
@@ -19,6 +20,7 @@ const typeDefs = gql`
     description: String!
     date: String!
     organizer: String!
+    email: String
     attendeeCount: Int!
   }
 
@@ -40,6 +42,7 @@ const typeDefs = gql`
     description: String!
     date: String!
     organizer: String!
+    email: String
   }
 
   type Mutation {
@@ -48,6 +51,7 @@ const typeDefs = gql`
       description: String!
       date: String!
       organizer: String!
+      email: String
     ): Event
     updateEvent(
       id: Int!
@@ -112,13 +116,13 @@ const resolvers = {
   Mutation: {
     createEvent: async (
       _: unknown,
-      { title, description, date, organizer }: Event
+      { title, description, date, organizer, email }: Event
     ) => {
       try {
         const event = await sql`
-            INSERT INTO events (title, description, date, organizer)
-            VALUES (${title}, ${description}, ${date}, ${organizer})
-            RETURNING id, title, description, date, organizer
+            INSERT INTO events (title, description, date, organizer, email)
+            VALUES (${title}, ${description}, ${date}, ${organizer}, ${email})
+            RETURNING id, title, description, date, organizer, email
           `;
         return event.rows[0];
       } catch (error) {
@@ -183,7 +187,7 @@ const resolvers = {
             description = COALESCE(${description}, description),
             date = COALESCE(${date}, date)
           WHERE id = ${id}
-          RETURNING id, title, description, date, organizer
+          RETURNING id, title, description, date, organizer, email
         `;
 
         if (event.rows.length === 0) {
