@@ -101,12 +101,11 @@ const CreateEventForm = () => {
     const fieldsToValidate = {
       1: ["title", "description"] as const,
       2: ["date", "organizer"] as const,
-      3: ["email"] as const,
     }[step];
 
     const isValid = await trigger(fieldsToValidate);
     if (isValid) {
-      setStep((prev) => Math.min(prev + 1, 3));
+      setStep((prev) => Math.min(prev + 1, 2));
     }
   };
 
@@ -157,20 +156,6 @@ const CreateEventForm = () => {
             </FormItem>
           </>
         );
-      case 3:
-        return (
-          <FormItem className="my-5">
-            <FormLabel>Email</FormLabel>
-            <Input
-              {...register("email")}
-              value={session?.user?.email || ""}
-              disabled
-            />
-            <FormMessage>
-              {errors.email && <span>{errors.email.message}</span>}
-            </FormMessage>
-          </FormItem>
-        );
     }
   };
 
@@ -178,7 +163,7 @@ const CreateEventForm = () => {
     <div className="flex items-center justify-center">
       <div className="p-10 w-[50%]">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="font-semibold">Create Event - Step {step} of 3</h1>
+          <h1 className="font-semibold">Create Event</h1>
           <div className="flex gap-2">
             <div
               className={`h-2 w-12 rounded ${
@@ -188,11 +173,6 @@ const CreateEventForm = () => {
             <div
               className={`h-2 w-12 rounded ${
                 step >= 2 ? "bg-primary" : "bg-gray-200"
-              }`}
-            />
-            <div
-              className={`h-2 w-12 rounded ${
-                step >= 3 ? "bg-primary" : "bg-gray-200"
               }`}
             />
           </div>
@@ -212,7 +192,7 @@ const CreateEventForm = () => {
                 <ChevronLeft className="mr-2 h-4 w-4" /> Back
               </Button>
 
-              {step < 3 ? (
+              {step < 2 ? (
                 <Button type="button" onClick={handleNext}>
                   Next <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
