@@ -21,6 +21,7 @@ type Event = {
   organizer: string;
   attendeeCount: number;
   email: string;
+  image: string;
 };
 
 type Subscription = {
@@ -40,6 +41,7 @@ const GET_EVENTS = gql`
       organizer
       attendeeCount
       email
+      image
     }
   }
 `;
@@ -203,6 +205,16 @@ const EventListPage = () => {
                       className="absolute top-4 right-4 cursor-pointer hover:text-[#649C9E]"
                     />
                   )}
+
+                {event.image && (
+                  <div className="mb-4">
+                    <img 
+                      src={event.image} 
+                      alt={event.title} 
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
 
                 <div className="font-semibold hover:text-[#649C9E] hover:underline">
                   <Link href={`/events/${event.id}`}>

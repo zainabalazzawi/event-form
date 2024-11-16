@@ -11,6 +11,7 @@ import { gql, useApolloClient } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ImageUpload } from "./ImageUpload";
 
 const CREATE_EVENT = gql`
   mutation CreateEvent(
@@ -19,6 +20,7 @@ const CREATE_EVENT = gql`
     $date: String!
     $organizer: String!
     $email: String!
+    $image: String
   ) {
     createEvent(
       title: $title
@@ -26,12 +28,14 @@ const CREATE_EVENT = gql`
       date: $date
       organizer: $organizer
       email: $email
+      image: $image
     ) {
       id
       title
       description
       date
       organizer
+      image
     }
   }
 `;
@@ -47,6 +51,7 @@ const CreateEventForm = () => {
     date: z.string().min(1, { message: "Date is required" }),
     organizer: z.string().min(1, { message: "Organizer is required" }),
     email: z.string().min(1, { message: "Email is required" }),
+    image: z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -57,6 +62,7 @@ const CreateEventForm = () => {
       date: "",
       organizer: "",
       email: session?.user?.email || "",
+      image: "",
     },
   });
 
@@ -78,6 +84,7 @@ const CreateEventForm = () => {
         date: fields.date,
         organizer: fields.organizer,
         email: session.user.email,
+        image: fields.image,
       },
     });
     return data.createEvent;
@@ -99,7 +106,7 @@ const CreateEventForm = () => {
 
   const handleNext = async () => {
     const fieldsToValidate = {
-      1: ["title", "description"] as const,
+      1: ["title", "description", "image"] as const,
       2: ["date", "organizer"] as const,
     }[step];
 
@@ -140,6 +147,10 @@ const CreateEventForm = () => {
       case 2:
         return (
           <>
+            <FormItem className="my-5">
+              <FormLabel>Image</FormLabel>
+              <ImageUpload {...register("image")} />
+            </FormItem>
             <FormItem className="my-5">
               <FormLabel>Date</FormLabel>
               <Input type="date" {...register("date")} />

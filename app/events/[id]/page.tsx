@@ -14,6 +14,7 @@ const GET_EVENT_BY_ID = gql`
       description
       date
       organizer
+      image
     }
   }
 `;
@@ -46,6 +47,15 @@ export default function EventPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
+      {event.image && (
+        <div className="mb-4">
+          <img 
+            src={event.image} 
+            alt={event.title} 
+            className="w-full h-64 object-cover rounded-lg"
+          />
+        </div>
+      )}
       <h1 className="text-2xl font-bold mb-4">{event.title}</h1>
       <div className="space-y-4">
         <div>

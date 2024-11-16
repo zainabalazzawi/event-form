@@ -5,15 +5,14 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { UploadCloud, Trash, Loader2 } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
-import { FormControl, FormItem, FormLabel, FormMessage } from "./ui/form";
+import { FormControl, FormItem, FormMessage } from "./ui/form";
 
 interface ImageUploadProps {
   name: string;
-  label?: string;
 }
 
 const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
-  ({ name, label }, ref) => {
+  ({ name }, ref) => {
     const { control } = useFormContext();
     const [uploadLoading, setUploadLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,21 +31,18 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
         const reader = new FileReader();
         reader.onloadend = () => {
           const result = reader.result as string;
-          console.log('Image converted to base64:', result.substring(0, 100) + '...');
           resolve(result);
         };
         reader.readAsDataURL(file);
       });
     };
 
-    console.log(ref)
     return (
       <Controller
         control={control}
         name={name}
         render={({ field: { onChange, value }, fieldState: { error } }) => (
           <FormItem>
-            {label && <FormLabel>{label}</FormLabel>}
             <FormControl>
               <div>
                 <div className="mb-4">

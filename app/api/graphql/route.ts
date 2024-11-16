@@ -11,6 +11,7 @@ type Event = {
   organizer: string;
   email: string;
   attendeeCount?: number;
+  image?: string;
 };
 
 const typeDefs = gql`
@@ -22,6 +23,7 @@ const typeDefs = gql`
     organizer: String!
     email: String
     attendeeCount: Int!
+    image: String
   }
 
   type Subscription {
@@ -43,6 +45,7 @@ const typeDefs = gql`
     date: String!
     organizer: String!
     email: String
+    image: String
   }
 
   type Mutation {
@@ -52,6 +55,7 @@ const typeDefs = gql`
       date: String!
       organizer: String!
       email: String
+      image: String
     ): Event
     updateEvent(
       id: Int!
@@ -73,7 +77,7 @@ const resolvers = {
           COUNT(DISTINCT CASE WHEN s.status = 'join' THEN s.user_id END) as "attendeeCount"
           FROM events e
           LEFT JOIN subscriptions s ON e.id = s.event_id
-          GROUP BY e.id, e.title, e.description, e.date, e.organizer
+          GROUP BY e.id, e.title, e.description, e.date, e.organizer, e.email, e.image
           ORDER BY e.date DESC
         `;
         return events.rows;
@@ -116,13 +120,13 @@ const resolvers = {
   Mutation: {
     createEvent: async (
       _: unknown,
-      { title, description, date, organizer, email }: Event
+      { title, description, date, organizer, email, image }: Event
     ) => {
       try {
         const event = await sql`
-            INSERT INTO events (title, description, date, organizer, email)
-            VALUES (${title}, ${description}, ${date}, ${organizer}, ${email})
-            RETURNING id, title, description, date, organizer, email
+            INSERT INTO events (title, description, date, organizer, email, image)
+            VALUES (${title}, ${description}, ${date}, ${organizer}, ${email}, ${image})
+            RETURNING id, title, description, date, organizer, email, image
           `;
         return event.rows[0];
       } catch (error) {
@@ -189,7 +193,7 @@ const resolvers = {
             description = COALESCE(${description}, description),
             date = COALESCE(${formattedDate}, date)
           WHERE id = ${id}
-          RETURNING id, title, description, date, organizer, email
+          RETURNING id, title, description, date, organizer, email, image
         `;
 
         if (event.rows.length === 0) {
