@@ -47,10 +47,11 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
               <div>
                 <div className="mb-4">
                   {value && (
-                    <div className="relative w-full h-64">
+                    <div className="relative">
                       <Image
                         alt="Upload"
-                        fill
+                        width={100}
+                        height={100}
                         style={{ objectFit: "cover" }}
                         src={value}
                         className="rounded"

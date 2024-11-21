@@ -62,6 +62,7 @@ const typeDefs = gql`
       title: String
       description: String
       date: String
+      image: String
     ): Event
     joinEvent(userId: Int!, eventId: Int!): Subscription
     updateJoinStatus(id: Int!, status: String!): Subscription
@@ -181,6 +182,7 @@ const resolvers = {
         description,
         date,
         organizer,
+        image
       }: Partial<Event> & { id: number }
     ) => {
       try {
@@ -191,7 +193,8 @@ const resolvers = {
           SET 
             title = COALESCE(${title}, title),
             description = COALESCE(${description}, description),
-            date = COALESCE(${formattedDate}, date)
+            date = COALESCE(${formattedDate}, date),
+             image = COALESCE(${image}, image)
           WHERE id = ${id}
           RETURNING id, title, description, date, organizer, email, image
         `;

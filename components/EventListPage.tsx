@@ -12,6 +12,7 @@ import { useSearchStore } from "@/store/searchStore";
 import { formatDate } from "@/lib/utils";
 import EditEventForm from "./EditEventForm";
 import { Calendar, CircleCheck, Pencil } from "lucide-react";
+import Image from "next/image";
 
 type Event = {
   id: number;
@@ -182,10 +183,10 @@ const EventListPage = () => {
   };
 
   return (
-    <div>
+    <div className="px-8 mt-8">
       {eventsLoading && <div>Loading...</div>}
       {eventsError && <div>Error loading events</div>}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {filteredEvents && filteredEvents.length > 0 ? (
           filteredEvents.map((event) => {
             const subscription = subscriptions?.find(
@@ -194,94 +195,97 @@ const EventListPage = () => {
             return (
               <div
                 key={event.id}
-                className="mb-4 border border-gray-300 rounded-lg p-5 relative"
+                className="mb-4 border border-gray-300 rounded-lg"
               >
-                {userId &&
-                  session?.user?.email?.toLowerCase() ===
-                    event.email?.toLowerCase() && (
-                    <Pencil
-                      size={15}
-                      onClick={() => setEditingEvent(event)}
-                      className="absolute top-4 right-4 cursor-pointer hover:text-[#649C9E]"
+                <div className="mb-4 w-full h-48 bg-neutral-200 rounded-t-lg">
+                  {event.image && (
+                    <Image
+                      src={event.image}
+                      alt={event.title}
+                      width={300}
+                      height={150}
+                      className="object-cover h-48 w-full rounded-t-lg"
                     />
                   )}
+                </div>
 
-                {event.image && (
-                  <div className="mb-4">
-                    <img 
-                      src={event.image} 
-                      alt={event.title} 
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
+                <div className="p-5">
+                  <div className="flex flex-row gap-2 items-center font-semibold hover:text-[#649C9E] hover:underline">
+                    <Link href={`/events/${event.id}`}>
+                      <span className="font-bold text-xl">{event.title}</span>
+                    </Link>
+                    {userId &&
+                      session?.user?.email?.toLowerCase() ===
+                        event.email?.toLowerCase() && (
+                        <Pencil
+                          size={15}
+                          onClick={() => setEditingEvent(event)}
+                          className="cursor-pointer"
+                        />
+                      )}
                   </div>
-                )}
-
-                <div className="font-semibold hover:text-[#649C9E] hover:underline">
-                  <Link href={`/events/${event.id}`}>
-                    <span className="font-bold text-xl">{event.title}</span>
-                  </Link>
-                </div>
-                <div className="text-base text-slate-600 font-semibold">
-                  Hosted by:&nbsp;{event.organizer}
-                </div>
-
-                <div className="flex felx-row items-center gap-3">
-                  <Calendar size={15} className="text-gray-600" />
-                  <span className="font-light"> {formatDate(event.date)}</span>
-                </div>
-
-                <div className="flex felx-row items-center gap-3">
-                  <CircleCheck size={15} className="text-gray-600" />
-                  <span className="font-light">
-                    {" "}
-                    {event.attendeeCount} going
-                  </span>
-                </div>
-
-                {userId && (
-                  <div className="mt-4">
-                    {subscription ? (
-                      <div className="flex space-x-2">
-                        <Toggle
-                          pressed={subscription.status === "join"}
-                          onClick={() =>
-                            handleUpdateStatus(subscription.id, "join")
-                          }
-                          variant="outline"
-                        >
-                          Join
-                        </Toggle>
-                        <Toggle
-                          pressed={subscription.status === "maybe"}
-                          onClick={() =>
-                            handleUpdateStatus(subscription.id, "maybe")
-                          }
-                          variant="outline"
-                        >
-                          Maybe
-                        </Toggle>
-                        <Toggle
-                          pressed={subscription.status === "cancel"}
-                          onClick={() =>
-                            handleUpdateStatus(subscription.id, "cancel")
-                          }
-                          variant="outline"
-                        >
-                          Cancel
-                        </Toggle>
-                      </div>
-                    ) : (
-                      <Button onClick={() => handleJoinEvent(event.id)}>
-                        Join Event
-                      </Button>
-                    )}
+                  <div className="text-base text-slate-600 font-semibold">
+                    Hosted by:&nbsp;{event.organizer}
                   </div>
-                )}
-                {!userId && (
-                  <SignInDialog>
-                    <Button className="mt-3">Join Event</Button>
-                  </SignInDialog>
-                )}
+                  <div className="flex felx-row items-center gap-3">
+                    <Calendar size={15} className="text-gray-600" />
+                    <span className="font-light">
+                      {" "}
+                      {formatDate(event.date)}
+                    </span>
+                  </div>
+                  <div className="flex felx-row items-center gap-3">
+                    <CircleCheck size={15} className="text-gray-600" />
+                    <span className="font-light">
+                      {" "}
+                      {event.attendeeCount} going
+                    </span>
+                  </div>
+                  {userId && (
+                    <div className="mt-4">
+                      {subscription ? (
+                        <div className="flex space-x-2">
+                          <Toggle
+                            pressed={subscription.status === "join"}
+                            onClick={() =>
+                              handleUpdateStatus(subscription.id, "join")
+                            }
+                            variant="outline"
+                          >
+                            Join
+                          </Toggle>
+                          <Toggle
+                            pressed={subscription.status === "maybe"}
+                            onClick={() =>
+                              handleUpdateStatus(subscription.id, "maybe")
+                            }
+                            variant="outline"
+                          >
+                            Maybe
+                          </Toggle>
+                          <Toggle
+                            pressed={subscription.status === "cancel"}
+                            onClick={() =>
+                              handleUpdateStatus(subscription.id, "cancel")
+                            }
+                            variant="outline"
+                          >
+                            Cancel
+                          </Toggle>
+                        </div>
+                      ) : (
+                        <Button onClick={() => handleJoinEvent(event.id)}>
+                          Join Event
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  {!userId && (
+                    <SignInDialog>
+                      <Button className="mt-3">Join Event</Button>
+                    </SignInDialog>
+                  )}
+                </div>
               </div>
             );
           })

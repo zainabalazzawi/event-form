@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { ImageUpload } from "./ImageUpload";
 
 const UPDATE_EVENT = gql`
   mutation UpdateEvent(
@@ -14,18 +15,21 @@ const UPDATE_EVENT = gql`
     $title: String
     $description: String
     $date: String
+    $image: String
   ) {
     updateEvent(
       id: $id
       title: $title
       description: $description
       date: $date
+      image: $image
     ) {
       id
       title
       description
       date
       organizer
+      image
     }
   }
 `;
@@ -34,6 +38,7 @@ const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().min(1, { message: "Description is required" }),
   date: z.string().min(1, { message: "Date is required" }),
+  image: z.string().optional(),
 });
 
 type EditEventFormProps = {
@@ -42,6 +47,7 @@ type EditEventFormProps = {
     title: string;
     description: string;
     date: string;
+    image?: string;
   };
   isOpen: boolean;
   onClose: () => void;
@@ -53,8 +59,10 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
 
   // Format the date to YYYY-MM-DD for the date input
   const formatDateForInput = (dateString: string) => {
-    const date = new Date(isNaN(Number(dateString)) ? dateString : Number(dateString));
-    return date.toISOString().split('T')[0];
+    const date = new Date(
+      isNaN(Number(dateString)) ? dateString : Number(dateString)
+    );
+    return date.toISOString().split("T")[0];
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -63,12 +71,19 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
       title: event.title,
       description: event.description,
       date: formatDateForInput(event.date),
+      image: event.image || "",
     },
   });
 
-  const { register, handleSubmit, formState: { errors } } = form;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form;
 
-  const updateEventMutation = async (fields: z.infer<typeof formSchema> & { id: number }) => {
+  const updateEventMutation = async (
+    fields: z.infer<typeof formSchema> & { id: number }
+  ) => {
     const { data } = await client.mutate({
       mutation: UPDATE_EVENT,
       variables: {
@@ -76,6 +91,7 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
         title: fields.title,
         description: fields.description,
         date: fields.date,
+        image: fields.image,
       },
     });
     return data.updateEvent;
@@ -93,7 +109,7 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
   const onHandleSubmit = (fields: z.infer<typeof formSchema>) => {
     mutation.mutate({
       id: event.id,
-      ...fields
+      ...fields,
     });
   };
 
@@ -104,7 +120,7 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
           <DialogTitle>Edit Event</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={handleSubmit(onHandleSubmit)}>
+          <form onSubmit={handleSubmit(onHandleSubmit)} className="w-full">
             <FormItem className="my-5">
               <FormLabel>Title</FormLabel>
               <Input {...register("title")} />
@@ -117,7 +133,9 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
               <FormLabel>Description</FormLabel>
               <Input {...register("description")} />
               <FormMessage>
-                {errors.description && <span>{errors.description.message}</span>}
+                {errors.description && (
+                  <span>{errors.description.message}</span>
+                )}
               </FormMessage>
             </FormItem>
 
@@ -126,6 +144,14 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
               <Input type="date" {...register("date")} />
               <FormMessage>
                 {errors.date && <span>{errors.date.message}</span>}
+              </FormMessage>
+            </FormItem>
+
+            <FormItem className="my-5">
+              <FormLabel>Image</FormLabel>
+              <ImageUpload name="image" />
+              <FormMessage>
+                {errors.image && <span>{errors.image.message}</span>}
               </FormMessage>
             </FormItem>
 
