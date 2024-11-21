@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
+import JoinEventButton from "@/components/JoinEventButton";
 
 const GET_EVENT_BY_ID = gql`
   query GetEventById($id: Int!) {
@@ -86,6 +87,7 @@ export default function EventPage() {
             <span className="text-slate-600">{formatDate(event.date)}</span>
             <h3 className="font-semibold text-lg">{event.title}</h3>
           </div>
+          <JoinEventButton eventId={event.id} />
         </div>
       </div>
     </div>
