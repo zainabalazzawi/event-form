@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageUpload } from "./ImageUpload";
+import { useRouter } from "next/navigation";
 
 const CREATE_EVENT = gql`
   mutation CreateEvent(
@@ -42,6 +43,7 @@ const CREATE_EVENT = gql`
 
 const CreateEventForm = () => {
   const client = useApolloClient();
+  const router = useRouter();
   const { data: session } = useSession();
   const [step, setStep] = useState(1);
 
@@ -93,7 +95,9 @@ const CreateEventForm = () => {
   const mutation = useMutation({
     mutationFn: createEventMutation,
     onSuccess: (newEvent) => {
-      console.log("Event created successfully:", newEvent);
+      console.log("Event created successfully:", newEvent);  
+      router.push(`/events/${newEvent.id}`);
+
     },
     onError: (error) => {
       console.error("Error creating event:", error);

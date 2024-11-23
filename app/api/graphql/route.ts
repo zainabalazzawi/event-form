@@ -186,7 +186,7 @@ const resolvers = {
       }: Partial<Event> & { id: number }
     ) => {
       try {
-        const formattedDate = date ? new Date(parseInt(date)).toISOString() : undefined;
+        const formattedDate = date || undefined;
 
         const event = await sql`
           UPDATE events
