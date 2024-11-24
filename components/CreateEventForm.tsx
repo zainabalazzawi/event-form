@@ -18,7 +18,8 @@ const CREATE_EVENT = gql`
   mutation CreateEvent(
     $title: String!
     $description: String!
-    $date: String!
+    $startDate: String!
+    $endDate: String!
     $organizer: String!
     $email: String!
     $image: String
@@ -26,7 +27,8 @@ const CREATE_EVENT = gql`
     createEvent(
       title: $title
       description: $description
-      date: $date
+      startDate: $startDate
+      endDate: $endDate
       organizer: $organizer
       email: $email
       image: $image
@@ -34,7 +36,8 @@ const CREATE_EVENT = gql`
       id
       title
       description
-      date
+      startDate
+      endDate
       organizer
       image
     }
@@ -50,7 +53,8 @@ const CreateEventForm = () => {
   const formSchema = z.object({
     title: z.string().min(1, { message: "Title is required" }),
     description: z.string().min(1, { message: "Description is required" }),
-    date: z.string().min(1, { message: "Date is required" }),
+    startDate: z.string().min(1, { message: "Start date is required" }),
+    endDate: z.string().min(1, { message: "End date is required" }),
     organizer: z.string().min(1, { message: "Organizer is required" }),
     email: z.string().min(1, { message: "Email is required" }),
     image: z.string().optional(),
@@ -61,7 +65,8 @@ const CreateEventForm = () => {
     defaultValues: {
       title: "",
       description: "",
-      date: "",
+      startDate: "",
+      endDate: "",
       organizer: "",
       email: session?.user?.email || "",
       image: "",
@@ -83,7 +88,8 @@ const CreateEventForm = () => {
       variables: {
         title: fields.title,
         description: fields.description,
-        date: fields.date,
+        startDate: fields.startDate,
+        endDate: fields.endDate,
         organizer: fields.organizer,
         email: session.user.email,
         image: fields.image,
@@ -111,7 +117,7 @@ const CreateEventForm = () => {
   const handleNext = async () => {
     const fieldsToValidate = {
       1: ["title", "description", "image"] as const,
-      2: ["date", "organizer"] as const,
+      2: ["startDate", "endDate","organizer"] as const,
     }[step];
 
     const isValid = await trigger(fieldsToValidate);
@@ -156,11 +162,34 @@ const CreateEventForm = () => {
               <ImageUpload {...register("image")} />
             </FormItem>
             <FormItem className="my-5">
-              <FormLabel>Date</FormLabel>
-              <Input type="date" {...register("date")} />
-              <FormMessage>
-                {errors.date && <span>{errors.date.message}</span>}
-              </FormMessage>
+              <FormLabel>Event Date and Time</FormLabel>
+              <div className="flex flex-col gap-4 mt-2">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <FormLabel className="text-sm text-gray-500">Start</FormLabel>
+                    <Input 
+                      type="datetime-local" 
+                      {...register("startDate")} 
+                      className="mt-1"
+                    />
+                    <FormMessage>
+                      {errors.startDate && <span>{errors.startDate.message}</span>}
+                    </FormMessage>
+                  </div>
+                  
+                  <div className="flex-1">
+                    <FormLabel className="text-sm text-gray-500">End</FormLabel>
+                    <Input 
+                      type="datetime-local" 
+                      {...register("endDate")} 
+                      className="mt-1"
+                    />
+                    <FormMessage>
+                      {errors.endDate && <span>{errors.endDate.message}</span>}
+                    </FormMessage>
+                  </div>
+                </div>
+              </div>
             </FormItem>
             <FormItem className="my-5">
               <FormLabel>Organizer</FormLabel>

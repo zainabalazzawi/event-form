@@ -5,7 +5,7 @@ import { gql, useApolloClient } from "@apollo/client";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useSearchStore } from "@/store/searchStore";
-import { formatDate } from "@/lib/utils";
+import { formatTimeRange } from "@/lib/utils";
 import EditEventForm from "./EditEventForm";
 import { Calendar, CircleCheck, Pencil } from "lucide-react";
 import Image from "next/image";
@@ -15,7 +15,8 @@ type Event = {
   id: number;
   title: string;
   description: string;
-  date: string;
+  startDate: string;
+  endDate: string;
   organizer: string;
   attendeeCount: number;
   email: string;
@@ -28,7 +29,8 @@ const GET_EVENTS = gql`
       id
       title
       description
-      date
+      startDate
+      endDate
       organizer
       attendeeCount
       email
@@ -117,11 +119,13 @@ const EventListPage = () => {
                   <div className="text-base text-slate-600 font-semibold">
                     Hosted by:&nbsp;{event.organizer}
                   </div>
-                  <div className="flex felx-row items-center gap-3">
+                  <div className="flex flex-col gap-1">
                     <Calendar size={15} className="text-gray-600" />
-                    <span className="font-light">
-                      {" "}
-                      {formatDate(event.date)}
+                    <span className="font-medium">
+                      {formatTimeRange(event.startDate, event.endDate).date}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {formatTimeRange(event.startDate, event.endDate).time}
                     </span>
                   </div>
                   <div className="flex felx-row items-center gap-3">

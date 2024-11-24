@@ -14,20 +14,23 @@ const UPDATE_EVENT = gql`
     $id: Int!
     $title: String
     $description: String
-    $date: String
+    $startDate: String
+    $endDate: String
     $image: String
   ) {
     updateEvent(
       id: $id
       title: $title
       description: $description
-      date: $date
+      startDate: $startDate
+      endDate: $endDate
       image: $image
     ) {
       id
       title
       description
-      date
+      startDate
+      endDate
       organizer
       image
     }
@@ -37,7 +40,8 @@ const UPDATE_EVENT = gql`
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().min(1, { message: "Description is required" }),
-  date: z.string().min(1, { message: "Date is required" }),
+  startDate: z.string().min(1, { message: "Start date is required" }),
+  endDate: z.string().min(1, { message: "End date is required" }),
   image: z.string().optional(),
 });
 
@@ -46,7 +50,8 @@ type EditEventFormProps = {
     id: number;
     title: string;
     description: string;
-    date: string;
+    startDate: string;
+    endDate: string;
     image?: string;
   };
   isOpen: boolean;
@@ -57,12 +62,11 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
   const client = useApolloClient();
   const queryClient = useQueryClient();
 
-  // Format the date to YYYY-MM-DD for the date input
   const formatDateForInput = (dateString: string) => {
-    const date = new Date(
-      isNaN(Number(dateString)) ? dateString : Number(dateString)
-    );
-    return date.toISOString().split("T")[0];
+    const date = new Date(dateString || Date.now());
+    return isNaN(date.getTime()) 
+      ? new Date().toISOString().slice(0, 16) 
+      : date.toISOString().slice(0, 16);
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -70,7 +74,8 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
     defaultValues: {
       title: event.title,
       description: event.description,
-      date: formatDateForInput(event.date),
+      startDate: formatDateForInput(event.startDate),
+      endDate: formatDateForInput(event.endDate),
       image: event.image || "",
     },
   });
@@ -90,7 +95,8 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
         id: fields.id,
         title: fields.title,
         description: fields.description,
-        date: fields.date,
+        startDate: fields.startDate,
+        endDate: fields.endDate,
         image: fields.image,
       },
     });
@@ -140,10 +146,24 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
             </FormItem>
 
             <FormItem className="my-5">
-              <FormLabel>Date</FormLabel>
-              <Input type="date" {...register("date")} />
+              <FormLabel>Start Date and Time</FormLabel>
+              <Input 
+                type="datetime-local" 
+                {...register("startDate")} 
+              />
               <FormMessage>
-                {errors.date && <span>{errors.date.message}</span>}
+                {errors.startDate && <span>{errors.startDate.message}</span>}
+              </FormMessage>
+            </FormItem>
+
+            <FormItem className="my-5">
+              <FormLabel>End Date and Time</FormLabel>
+              <Input 
+                type="datetime-local" 
+                {...register("endDate")} 
+              />
+              <FormMessage>
+                {errors.endDate && <span>{errors.endDate.message}</span>}
               </FormMessage>
             </FormItem>
 

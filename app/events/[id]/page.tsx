@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import { useParams } from "next/navigation";
-import { formatDate } from "@/lib/utils";
+import { formatTimeRange } from "@/lib/utils";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
@@ -15,7 +15,8 @@ const GET_EVENT_BY_ID = gql`
       id
       title
       description
-      date
+      startDate
+      endDate
       organizer
       image
     }
@@ -75,19 +76,28 @@ export default function EventPage() {
         </div>
 
         <Card className="p-6 w-[30%]">
-          <CardContent className="flex flex-row gap-5">
-            <Clock />
-            <p>{formatDate(event.date)}</p>
+          <CardContent className="flex flex-row items-center gap-5">
+            <Clock size={20} className="text-gray-400"/>
+            <div className="flex flex-col text-sm">
+              <span className="font-normal">
+                {formatTimeRange(event.startDate, event.endDate).date}
+              </span>
+              <span className=" text-gray-600">
+                {formatTimeRange(event.startDate, event.endDate).time}
+              </span>
+            </div>
           </CardContent>
         </Card>
       </div>
       <div className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-          <div className="flex flex-col items-start  gap-4">
-            <span className="text-slate-600">{formatDate(event.date)}</span>
+          <div className="flex flex-col items-start  gap-1">
+            <span className="text-slate-600">
+              {formatTimeRange(event.startDate, event.endDate, true).date}
+            </span>
             <h3 className="font-semibold text-lg">{event.title}</h3>
           </div>
-          <JoinEventButton eventId={event.id} />
+          <JoinEventButton eventId={event.id} />  
         </div>
       </div>
     </div>

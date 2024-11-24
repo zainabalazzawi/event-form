@@ -7,7 +7,8 @@ type Event = {
   id: number;
   title: string;
   description: string;
-  date: string;
+  startDate: string;
+  endDate: string;
   organizer: string;
   email: string;
   attendeeCount?: number;
@@ -19,7 +20,8 @@ const typeDefs = gql`
     id: Int!
     title: String!
     description: String!
-    date: String!
+    startDate: String!
+    endDate: String!
     organizer: String!
     email: String
     attendeeCount: Int!
@@ -42,7 +44,8 @@ const typeDefs = gql`
   input CreateEventInput {
     title: String!
     description: String!
-    date: String!
+    startDate: String!
+    endDate: String!
     organizer: String!
     email: String
     image: String
@@ -52,7 +55,8 @@ const typeDefs = gql`
     createEvent(
       title: String!
       description: String!
-      date: String!
+      startDate: String!
+      endDate: String!
       organizer: String!
       email: String
       image: String
@@ -61,7 +65,8 @@ const typeDefs = gql`
       id: Int!
       title: String
       description: String
-      date: String
+      startDate: String
+      endDate: String
       image: String
     ): Event
     joinEvent(userId: Int!, eventId: Int!): Subscription
@@ -78,8 +83,8 @@ const resolvers = {
           COUNT(DISTINCT CASE WHEN s.status = 'join' THEN s.user_id END) as "attendeeCount"
           FROM events e
           LEFT JOIN subscriptions s ON e.id = s.event_id
-          GROUP BY e.id, e.title, e.description, e.date, e.organizer, e.email, e.image
-          ORDER BY e.date DESC
+          GROUP BY e.id, e.title, e.description, e."startDate", e."endDate", e.organizer, e.email, e.image
+          ORDER BY e."startDate" DESC
         `;
         return events.rows;
       } catch (error) {
@@ -121,14 +126,14 @@ const resolvers = {
   Mutation: {
     createEvent: async (
       _: unknown,
-      { title, description, date, organizer, email, image }: Event
+      { title, description, startDate, endDate, organizer, email, image }: Event
     ) => {
       try {
         const event = await sql`
-            INSERT INTO events (title, description, date, organizer, email, image)
-            VALUES (${title}, ${description}, ${date}, ${organizer}, ${email}, ${image})
-            RETURNING id, title, description, date, organizer, email, image
-          `;
+          INSERT INTO events (title, description, "startDate", "endDate", organizer, email, image)
+          VALUES (${title}, ${description}, ${startDate}, ${endDate}, ${organizer}, ${email}, ${image})
+          RETURNING id, title, description, "startDate", "endDate", organizer, email, image
+        `;
         return event.rows[0];
       } catch (error) {
         console.error("Error creating event:", error);
@@ -180,29 +185,26 @@ const resolvers = {
         id,
         title,
         description,
-        date,
-        organizer,
-        image
+        startDate,
+        endDate,
+        image,
       }: Partial<Event> & { id: number }
     ) => {
       try {
-        const formattedDate = date || undefined;
-
         const event = await sql`
           UPDATE events
           SET 
             title = COALESCE(${title}, title),
             description = COALESCE(${description}, description),
-            date = COALESCE(${formattedDate}, date),
-             image = COALESCE(${image}, image)
+            "startDate" = COALESCE(${startDate}, "startDate"),
+            "endDate" = COALESCE(${endDate}, "endDate"),
+            image = COALESCE(${image}, image)
           WHERE id = ${id}
-          RETURNING id, title, description, date, organizer, email, image
+          RETURNING id, title, description, "startDate", "endDate", organizer, email, image
         `;
-
         if (event.rows.length === 0) {
           throw new Error("Event not found");
         }
-
         return event.rows[0];
       } catch (error) {
         console.error("Error updating event:", error);
