@@ -65,3 +65,18 @@ export const formatTimeRange = (
     time: !shortFormat ? `${start.toLocaleTimeString('en-US', timeFormat)} to ${end.toLocaleTimeString('en-US', timeFormat)}` : ''
   };
 };
+
+
+export const formatCommentDate = (dateString: string) => {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  
+  return new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  }).format(date).replace(',', '');
+};

@@ -34,21 +34,20 @@ const typeDefs = gql`
     eventId: Int!
     status: String!
   }
+  type Comment {
+    id: Int!
+    content: String!
+    createdAt: String!
+    userId: Int!
+    eventId: Int!
+    userEmail: String!
+  }
 
   type Query {
     events: [Event!]!
     event(id: Int!): Event
     subscriptions(userId: Int!): [Subscription!]!
-  }
-
-  input CreateEventInput {
-    title: String!
-    description: String!
-    startDate: String!
-    endDate: String!
-    organizer: String!
-    email: String
-    image: String
+    comments(eventId: Int!): [Comment!]!
   }
 
   type Mutation {
@@ -71,6 +70,7 @@ const typeDefs = gql`
     ): Event
     joinEvent(userId: Int!, eventId: Int!): Subscription
     updateJoinStatus(id: Int!, status: String!): Subscription
+    createComment(content: String!, eventId: Int!, userId: Int!): Comment
   }
 `;
 
@@ -120,6 +120,27 @@ const resolvers = {
       } catch (error) {
         console.error("Error fetching event:", error);
         throw new Error("Failed to fetch event");
+      }
+    },
+    comments: async (_: unknown, { eventId }: { eventId: number }) => {
+      try {
+        const comments = await sql`
+          SELECT 
+            c.id,
+            c.content,
+            TO_CHAR(c.created_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt", 
+            c.user_id AS "userId",
+            c.event_id AS "eventId",
+            u.email AS "userEmail"
+          FROM comments c
+          JOIN users u ON c.user_id = u.id
+          WHERE c.event_id = ${eventId}
+          ORDER BY c.created_at DESC
+        `;
+        return comments.rows;
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+        throw new Error("Failed to fetch comments");
       }
     },
   },
@@ -209,6 +230,43 @@ const resolvers = {
       } catch (error) {
         console.error("Error updating event:", error);
         throw new Error("Failed to update event");
+      }
+    },
+    createComment: async (
+      _: unknown,
+      {
+        content,
+        eventId,
+        userId,
+      }: { content: string; eventId: number; userId: number }
+    ) => {
+      try {
+        const userEmail = await sql`
+          SELECT email FROM users WHERE id = ${userId}
+        `;
+
+        if (userEmail.rows.length === 0) {
+          throw new Error("User not found");
+        }
+
+        const comment = await sql`
+          INSERT INTO comments (content, event_id, user_id, created_at)
+          VALUES (${content}, ${eventId}, ${userId}, NOW())
+          RETURNING 
+            id, 
+            content, 
+            TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt",
+            user_id AS "userId", 
+            event_id AS "eventId"
+        `;
+
+        return {
+          ...comment.rows[0],
+          userEmail: userEmail.rows[0].email
+        };
+      } catch (error) {
+        console.error("Error creating comment:", error);
+        throw new Error("Failed to create comment");
       }
     },
   },

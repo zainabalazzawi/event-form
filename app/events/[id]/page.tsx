@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import JoinEventButton from "@/components/JoinEventButton";
+import Comments from "@/components/Comments";
 
 const GET_EVENT_BY_ID = gql`
   query GetEventById($id: Int!) {
@@ -50,7 +51,7 @@ export default function EventPage() {
   if (!event) return <div>Event not found</div>;
 
   return (
-    <div className="bg-slate-50 h-screen">
+    <div className="bg-slate-50 h-full pb-[10rem]">
       <div className="w-full bg-white 0 px-[4rem] py-3 mb-20 shadow-md">
         <h1 className="text-2xl font-bold mb-4">{event.title}</h1>
         <div>Host by</div>
@@ -58,7 +59,7 @@ export default function EventPage() {
       </div>
 
       <div className="flex flex-row mx-[10rem] w-[80%] justify-between">
-        <div className="flex flex-col">
+        <div className="flex flex-col w-[50%]">
           <div className="mb-4">
             {event.image && (
               <img
@@ -69,15 +70,16 @@ export default function EventPage() {
             )}
           </div>
 
-          <div>
+          <div className="w-full">
             <h2 className="font-bold">Details</h2>
             <p>{event.description}</p>
+            <Comments eventId={event.id} />
           </div>
         </div>
 
-        <Card className="p-6 w-[30%]">
+        <Card className="p-6 w-[30%] h-[30%]">
           <CardContent className="flex flex-row items-center gap-5">
-            <Clock size={20} className="text-gray-400"/>
+            <Clock size={20} className="text-gray-400" />
             <div className="flex flex-col text-sm">
               <span className="font-normal">
                 {formatTimeRange(event.startDate, event.endDate).date}
@@ -97,7 +99,7 @@ export default function EventPage() {
             </span>
             <h3 className="font-semibold text-lg">{event.title}</h3>
           </div>
-          <JoinEventButton eventId={event.id} />  
+          <JoinEventButton eventId={event.id} />
         </div>
       </div>
     </div>
