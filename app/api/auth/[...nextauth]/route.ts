@@ -33,7 +33,6 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
-
         try {
           const userQuery = await sql`
             SELECT * FROM users WHERE email = ${credentials.email}
