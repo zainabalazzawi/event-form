@@ -15,7 +15,8 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
-    idToken: string;
+    id: string;
+    email: string;
   }
 }
 
@@ -65,16 +66,15 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user: any }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.email = user.email;
       }
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.idToken;
+        session.user.id = token.id;
         session.user.email = token.email;
       }
       return session;
@@ -85,7 +85,7 @@ export const authOptions: NextAuthOptions = {
     signOut: "/logout",
   },
   session: {
-    strategy: "jwt" as const,
+    strategy: "jwt",
   },
   events: {
     signOut: async (message) => {
