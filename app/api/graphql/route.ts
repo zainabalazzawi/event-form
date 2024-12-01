@@ -388,7 +388,6 @@ const resolvers = {
             image
         `;
 
-        // Add the creator as the first member with 'admin' role
         await sql`
           INSERT INTO group_memberships (user_id, group_id, role, joined_at)
           VALUES (${organizerId}, ${group.rows[0].id}, 'admin', NOW())
