@@ -412,9 +412,14 @@ const server = new ApolloServer({
 });
 
 const handler = startServerAndCreateNextHandler(server, {
-  context: async (req) => {
-    const session = await getServerSession(authOptions);
-    return { session };
+  context: async () => {
+    try {
+      const session = await getServerSession(authOptions);
+      return { session };
+    } catch (error) {
+      console.error("Session error:", error);
+      return { session: null };
+    }
   },
 });
 

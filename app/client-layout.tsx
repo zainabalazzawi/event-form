@@ -7,7 +7,7 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 
 const queryClient = new QueryClient();
 const client = new ApolloClient({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || '/api/graphql',
+  uri: '/api/graphql',
   cache: new InMemoryCache(),
   defaultOptions: {
     watchQuery: {

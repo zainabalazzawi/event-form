@@ -8,9 +8,9 @@ const nextConfig = {
     return config;
   },
   env: {
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    NEXT_PUBLIC_GRAPHQL_URL: process.env.NEXT_PUBLIC_GRAPHQL_URL,
+    POSTGRES_URL: process.env.POSTGRES_URL,
   }
 };
 
