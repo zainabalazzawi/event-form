@@ -1,8 +1,9 @@
-import NextAuth from "next-auth"
+import NextAuth, { NextAuthOptions, Session } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { sql } from "@vercel/postgres"
 import { DefaultSession } from "next-auth"
+import { JWT, DefaultJWT } from "next-auth/jwt"
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -12,7 +13,14 @@ declare module "next-auth" {
   }
 }
 
-const handler = NextAuth({
+declare module "next-auth/jwt" {
+  interface JWT extends DefaultJWT {
+    idToken: string;
+  }
+}
+
+export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -54,17 +62,17 @@ const handler = NextAuth({
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT; user: any }) {
       if (user) {
         token.id = user.id
-        token.email = user.email
+         token.email = user.email
       }
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
+        session.user.id = token.idToken;
+        session.user.email = token.email
       }
       return session
     }
@@ -74,7 +82,7 @@ const handler = NextAuth({
     signOut: '/logout',
   },
   session: {
-    strategy: 'jwt',
+    strategy: "jwt" as const,
   },
   events: {
     signOut: async (message) => {
@@ -84,6 +92,7 @@ const handler = NextAuth({
       console.log('User signed in:', message);
     },
   },
-})
+};
 
-export { handler as GET, handler as POST }
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
