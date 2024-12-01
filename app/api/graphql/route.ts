@@ -4,7 +4,7 @@ import { gql } from "graphql-tag";
 import { sql } from "@vercel/postgres";
 import { Session } from "next-auth";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "../auth/lib/auth";
 
 type Event = {
   id: number;

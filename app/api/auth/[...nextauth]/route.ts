@@ -1,9 +1,7 @@
-import NextAuth, { NextAuthOptions, Session } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { sql } from "@vercel/postgres";
+import NextAuth from "next-auth";
 import { DefaultSession } from "next-auth";
 import { JWT, DefaultJWT } from "next-auth/jwt";
+import { authOptions } from "../lib/auth";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -20,81 +18,6 @@ declare module "next-auth/jwt" {
   }
 }
 
-export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "text", placeholder: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-        try {
-          const userQuery = await sql`
-            SELECT * FROM users WHERE email = ${credentials.email}
-          `;
-
-          const user = userQuery.rows[0];
-
-          if (!user) {
-            return null;
-          }
-
-          const passwordMatch = await bcrypt.compare(
-            credentials.password,
-            user.password
-          );
-
-          if (!passwordMatch) {
-            return null;
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-          };
-        } catch (error) {
-          console.error("Error during authentication:", error);
-          return null;
-        }
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id;
-        session.user.email = token.email;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-    signOut: "/logout",
-  },
-  session: {
-    strategy: "jwt",
-  },
-  events: {
-    signOut: async (message) => {
-      console.log("User signed out:", message);
-    },
-    signIn: async (message) => {
-      console.log("User signed in:", message);
-    },
-  },
-};
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
