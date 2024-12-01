@@ -412,8 +412,8 @@ const server = new ApolloServer({
 });
 
 const handler = startServerAndCreateNextHandler(server, {
-  context: async (req, res) => {
-    const session = await getServerSession(req, res, authOptions);
+  context: async (req) => {
+    const session = await getServerSession(authOptions);
     return { session };
   },
 });
