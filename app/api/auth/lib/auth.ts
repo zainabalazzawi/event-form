@@ -4,78 +4,69 @@ import bcrypt from "bcryptjs";
 import { sql } from "@vercel/postgres";
 
 export const authOptions: NextAuthOptions = {
-    secret: process.env.NEXTAUTH_SECRET,
-    providers: [
-      CredentialsProvider({
-        name: "Credentials",
-        credentials: {
-          email: { label: "Email", type: "text", placeholder: "email" },
-          password: { label: "Password", type: "password" },
-        },
-        async authorize(credentials) {
-          if (!credentials?.email || !credentials?.password) {
-            return null;
-          }
-          try {
-            const userQuery = await sql`
-              SELECT * FROM users WHERE email = ${credentials.email}
-            `;
-  
-            const user = userQuery.rows[0];
-  
-            if (!user) {
-              return null;
-            }
-  
-            const passwordMatch = await bcrypt.compare(
-              credentials.password,
-              user.password
-            );
-  
-            if (!passwordMatch) {
-              return null;
-            }
-  
-            return {
-              id: user.id,
-              email: user.email,
-            };
-          } catch (error) {
-            console.error("Error during authentication:", error);
-            return null;
-          }
-        },
-      }),
-    ],
-    callbacks: {
-      async jwt({ token, user }) {
-        if (user) {
-          token.id = user.id;
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Missing credentials");
         }
-        return token;
-      },
-      async session({ session, token }) {
-        if (session.user) {
-          session.user.id = token.id;
-          session.user.email = token.email;
+
+        try {
+          const userQuery = await sql`
+            SELECT * FROM users WHERE email = ${credentials.email}
+          `;
+
+          const user = userQuery.rows[0];
+
+          if (!user) {
+            throw new Error("No user found");
+          }
+
+          const passwordMatch = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+
+          if (!passwordMatch) {
+            throw new Error("Invalid password");
+          }
+
+          return {
+            id: user.id.toString(),
+            email: user.email,
+          };
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
         }
-        return session;
       },
+    }),
+  ],
+  session: {
+    strategy: "jwt",
+  },
+  pages: {
+    signIn: "/login",
+    error: "/auth/error",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
     },
-    pages: {
-      signIn: "/login",
-      signOut: "/logout",
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+      }
+      return session;
     },
-    session: {
-      strategy: "jwt",
-    },
-    events: {
-      signOut: async (message) => {
-        console.log("User signed out:", message);
-      },
-      signIn: async (message) => {
-        console.log("User signed in:", message);
-      },
-    },
-  };
-  
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+};
