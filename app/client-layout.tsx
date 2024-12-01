@@ -9,16 +9,16 @@ const queryClient = new QueryClient();
 const client = new ApolloClient({
   uri: '/api/graphql',
   cache: new InMemoryCache(),
-  defaultOptions: {
-    watchQuery: {
-      fetchPolicy: 'network-only',
-      errorPolicy: 'ignore',
-    },
-    query: {
-      fetchPolicy: 'network-only',
-      errorPolicy: 'all',
-    },
-  },
+  // defaultOptions: {
+  //   watchQuery: {
+  //     fetchPolicy: 'network-only',
+  //     errorPolicy: 'ignore',
+  //   },
+  //   query: {
+  //     fetchPolicy: 'network-only',
+  //     errorPolicy: 'all',
+  //   },
+  // },
 });
 
 export default function ClientLayout({
