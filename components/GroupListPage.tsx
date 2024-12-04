@@ -1,12 +1,21 @@
 "use client";
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useSearchStore } from "@/store/searchStore";
 import Image from "next/image";
-import { Users, Pencil } from "lucide-react";
+import { Users, Pencil, Trash } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Button } from "./ui/button";
 
 type Group = {
   id: number;
@@ -33,6 +42,11 @@ const GET_GROUPS = gql`
     }
   }
 `;
+const DELETE_GROUP = gql`
+  mutation DeleteGroup($id: Int!) {
+    deleteGroup(id: $id)
+  }
+`;
 
 const getGroups = async (client: any) => {
   const { data } = await client.query({
@@ -46,7 +60,8 @@ const GroupListPage = () => {
   const { data: session } = useSession();
   const userId = session?.user?.id ? parseInt(session.user.id) : null;
   const { searchQuery } = useSearchStore();
-
+  const queryClient = useQueryClient();
+  const [groupToDelete, setGroupToDelete] = useState<number | null>(null);
   const {
     data: groups,
     isLoading,
@@ -58,10 +73,38 @@ const GroupListPage = () => {
 
   const filteredGroups = groups?.filter(
     (group) =>
-      group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      group.about.toLowerCase().includes(searchQuery.toLowerCase())
+      group.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      group.about?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (groupId: number) => {
+      const { data } = await client.mutate({
+        mutation: DELETE_GROUP,
+        variables: { id: groupId },
+      });
+      return data.deleteGroup;
+    },
+    onSuccess: (_, deletedGroupId) => {
+      queryClient.setQueryData(["groups"], (oldGroups: Group[] = []) =>
+        oldGroups.filter((group) => group.id !== deletedGroupId)
+      );
+    },
+    onError: (error) => {
+      console.error("Error deleting group:", error);
+    },
+  });
+
+  const handleDelete = (groupId: number) => {
+    setGroupToDelete(groupId);
+  };
+
+  const confirmDelete = () => {
+    if (groupToDelete) {
+      deleteGroupMutation.mutate(groupToDelete);
+      setGroupToDelete(null);
+    }
+  };
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -72,12 +115,12 @@ const GroupListPage = () => {
 
   return (
     <div className="px-8 mt-8 pb-6">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="flex flex-row gap-4">
         {filteredGroups && filteredGroups.length > 0 ? (
           filteredGroups.map((group) => (
             <div
               key={group.id}
-              className="mb-4 border border-gray-300 rounded-lg"
+              className="flex flex-col mb-4 border border-gray-300 rounded-lg w-[20%]"
             >
               <div className="mb-4 w-full h-48 bg-neutral-200 rounded-t-lg">
                 {group.image && (
@@ -102,15 +145,48 @@ const GroupListPage = () => {
                   {userId &&
                     session?.user?.email?.toLowerCase() ===
                       group.organizerEmail?.toLowerCase() && (
-                    <Pencil size={15} className="cursor-pointer" />
-                  )}
+                      <Pencil size={15} className="cursor-pointer" />
+                    )}
                 </div>
                 <p className="text-gray-600 mt-2 line-clamp-2">{group.about}</p>
                 <div className="flex items-center gap-2 mt-4 text-gray-600">
                   <Users size={15} />
                   <span>{group.memberCount} members</span>
                 </div>
+                {session?.user?.email === group.organizerEmail && (
+                  <button
+                    onClick={() => handleDelete(group.id)}
+                    className="text-red-800 hover:text-red-600"
+                  >
+                    <Trash />
+                  </button>
+                )}
               </div>
+              <Dialog
+                open={!!groupToDelete}
+                onOpenChange={() => setGroupToDelete(null)}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Group</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete this group? This action
+                      cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={() => setGroupToDelete(null)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button variant="destructive" onClick={confirmDelete}>
+                      Delete
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           ))
         ) : (

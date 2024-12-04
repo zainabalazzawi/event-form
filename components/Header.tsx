@@ -16,8 +16,14 @@ const Header = () => {
   const { searchQuery, setSearchQuery } = useSearchStore();
 
   const showCreateEventButton = pathname !== "/create-event";
+  const showCreateGroupButton = pathname !== "/create-group";
+
   const handleCreateEventClick = () => {
     router.push("/create-event");
+  };
+
+  const handleCreateGroupClick = () => {
+    router.push("/create-group");
   };
 
   const handleSearch = useDebouncedCallback((term) => {
@@ -57,6 +63,20 @@ const Header = () => {
               {!session && (
                 <SignInDialog redirectUrl="/create-event">
                   <Button className="mx-4">Create Event</Button>
+                </SignInDialog>
+              )}
+            </>
+          )}
+          {showCreateGroupButton && (
+            <>
+              {session && (
+                <Button onClick={handleCreateGroupClick} className="mx-4">
+                  Create Group
+                </Button>
+              )}
+              {!session && (
+                <SignInDialog redirectUrl="/create-group">
+                  <Button className="mx-4">Create Group</Button>
                 </SignInDialog>
               )}
             </>

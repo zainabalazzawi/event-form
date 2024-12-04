@@ -114,6 +114,7 @@ const typeDefs = gql`
       email: String
       image: String
     ): Event
+    deleteGroup(id: Int!): Boolean
   }
 `;
 
@@ -401,6 +402,47 @@ const resolvers = {
       } catch (error) {
         console.error("Error creating group:", error);
         throw new Error("Failed to create group");
+      }
+    },
+    deleteGroup: async (
+      _: unknown,
+      { id }: { id: number },
+      { session }: { session: Session | null }
+    ) => {
+      if (!session?.user?.email) {
+        throw new Error("You must be logged in to delete a group");
+      }
+
+      try {
+        // Check if user is the organizer
+        const groupResult = await sql`
+          SELECT organizer_id 
+          FROM groups 
+          WHERE id = ${id}
+        `;
+
+        const userResult = await sql`
+          SELECT id FROM users WHERE email = ${session.user.email}
+        `;
+
+        if (userResult.rows[0].id !== groupResult.rows[0].organizer_id) {
+          throw new Error("Only the group organizer can delete the group");
+        }
+
+        // Delete group memberships
+        await sql`
+          DELETE FROM group_memberships WHERE group_id = ${id}
+        `;
+
+        // Delete the group
+        await sql`
+          DELETE FROM groups WHERE id = ${id}
+        `;
+
+        return true;
+      } catch (error) {
+        console.error("Error deleting group:", error);
+        throw new Error("Failed to delete group");
       }
     },
   },
