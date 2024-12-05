@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
+import EditGroupForm from "./EditGroupForm";
 
 type Group = {
   id: number;
@@ -62,6 +63,7 @@ const GroupListPage = () => {
   const { searchQuery } = useSearchStore();
   const queryClient = useQueryClient();
   const [groupToDelete, setGroupToDelete] = useState<number | null>(null);
+  const [groupToEdit, setGroupToEdit] = useState<Group | null>(null);
   const {
     data: groups,
     isLoading,
@@ -145,7 +147,11 @@ const GroupListPage = () => {
                   {userId &&
                     session?.user?.email?.toLowerCase() ===
                       group.organizerEmail?.toLowerCase() && (
-                      <Pencil size={15} className="cursor-pointer" />
+                      <Pencil
+                        size={15}
+                        onClick={() => setGroupToEdit(group)}
+                        className="cursor-pointer"
+                      />
                     )}
                 </div>
                 <p className="text-gray-600 mt-2 line-clamp-2">{group.about}</p>
@@ -187,6 +193,13 @@ const GroupListPage = () => {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+              {groupToEdit && (
+                <EditGroupForm
+                  group={groupToEdit}
+                  isOpen={!!groupToEdit}
+                  onClose={() => setGroupToEdit(null)}
+                />
+              )}
             </div>
           ))
         ) : (

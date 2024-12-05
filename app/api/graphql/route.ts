@@ -18,6 +18,17 @@ type Event = {
   image?: string;
 };
 
+type Group = {
+  id: number;
+  name: string;
+  about: string;
+  createdAt: string;
+  organizerId: number;
+  organizerEmail: string;
+  memberCount: number;
+  image?: string;
+};
+
 const typeDefs = gql`
   type Group {
     id: Int!
@@ -194,15 +205,26 @@ const resolvers = {
     group: async (_: unknown, { id }: { id: number }) => {
       try {
         const group = await sql`
-          SELECT g.*,
-          COUNT(DISTINCT gm.user_id) as "memberCount",
-          u.email as "organizerEmail"
+          SELECT 
+            g.id,
+            g.name,
+            g.about,
+            g.created_at as "createdAt",
+            g.organizer_id as "organizerId",
+            g.image,
+            COUNT(DISTINCT gm.user_id) as "memberCount",
+            u.email as "organizerEmail"
           FROM groups g
           LEFT JOIN group_memberships gm ON g.id = gm.group_id
-          JOIN users u ON g.organizerId = u.id
+          LEFT JOIN users u ON g.organizer_id = u.id
           WHERE g.id = ${id}
-          GROUP BY g.id, g.name, g.about, g.created_at, g.organizerId, u.email
+          GROUP BY g.id, g.name, g.about, g.created_at, g.organizer_id, g.image, u.email
         `;
+
+        if (group.rows.length === 0) {
+          throw new Error("Group not found");
+        }
+
         return group.rows[0];
       } catch (error) {
         console.error("Error fetching group:", error);
@@ -443,6 +465,61 @@ const resolvers = {
       } catch (error) {
         console.error("Error deleting group:", error);
         throw new Error("Failed to delete group");
+      }
+    },
+    updateGroup: async (
+      _: unknown,
+      { id, name, about, image }: Partial<Group> & { id: number },
+      { session }: { session: Session | null }
+    ) => {
+      if (!session?.user?.email) {
+        throw new Error("You must be logged in to update a group");
+      }
+
+      try {
+        // Check if user is the organizer
+        const groupResult = await sql`
+          SELECT organizer_id 
+          FROM groups 
+          WHERE id = ${id}
+        `;
+
+        const userResult = await sql`
+          SELECT id FROM users WHERE email = ${session.user.email}
+        `;
+
+        if (userResult.rows[0].id !== groupResult.rows[0].organizer_id) {
+          throw new Error("Only the group organizer can update the group");
+        }
+
+        const group = await sql`
+          UPDATE groups
+          SET 
+            name = COALESCE(${name}, name),
+            about = COALESCE(${about}, about),
+            image = COALESCE(${image}, image)
+          WHERE id = ${id}
+          RETURNING 
+            id, 
+            name, 
+            about, 
+            created_at as "createdAt",
+            organizer_id as "organizerId",
+            image
+        `;
+
+        if (group.rows.length === 0) {
+          throw new Error("Group not found");
+        }
+
+        return {
+          ...group.rows[0],
+          memberCount: 1,
+          organizerEmail: session.user.email,
+        };
+      } catch (error) {
+        console.error("Error updating group:", error);
+        throw new Error("Failed to update group");
       }
     },
   },
