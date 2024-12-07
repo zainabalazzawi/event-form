@@ -17,6 +17,9 @@ const signupSchema = z.object({
   password: z.string().min(6, {
     message: "Password field is required and must be at least 6 characters",
   }),
+  name: z.string().min(2, {
+    message: "name field is required",
+  }),
 });
 
 type SignupFormData = z.infer<typeof signupSchema>;
@@ -27,6 +30,7 @@ const SignupForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     defaultValues: {
       email: "",
       password: "",
+      name: "",
     },
   });
 
@@ -35,7 +39,7 @@ const SignupForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     handleSubmit,
     formState: { errors },
   } = form;
-  
+
   const signUpMutation = async (signupData: SignupFormData) => {
     const response = await axios.post("/api/auth/signup", signupData);
     if (response.status !== 200) {
@@ -61,6 +65,13 @@ const SignupForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit(onHandleSubmit)}>
+        <FormItem className="my-5">
+          <FormLabel>Name</FormLabel>
+          <Input type="text" {...register("name")} />
+          <FormMessage>
+            {errors.name && <span>{errors.name.message}</span>}
+          </FormMessage>
+        </FormItem>
         <FormItem className="my-5">
           <FormLabel>Email</FormLabel>
           <Input {...register("email")} />

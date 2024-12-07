@@ -25,6 +25,7 @@ type Group = {
   createdAt: string;
   organizerId: number;
   organizerEmail: string;
+  organizerName: string;
   memberCount: number;
   image?: string;
 };
@@ -37,6 +38,7 @@ const typeDefs = gql`
     createdAt: String!
     organizerId: Int!
     organizerEmail: String!
+    organizerName: String
     memberCount: Int!
     image: String
   }
@@ -159,11 +161,12 @@ const resolvers = {
             g.organizer_id as "organizerId",
             g.image,
             COUNT(DISTINCT gm.user_id) as "memberCount",
-            u.email as "organizerEmail"
+            u.email as "organizerEmail",
+            u.name as "organizerName"
           FROM groups g
           LEFT JOIN group_memberships gm ON g.id = gm.group_id
           LEFT JOIN users u ON g.organizer_id = u.id
-          GROUP BY g.id, g.name, g.about, g.created_at, g.organizer_id, g.image, u.email
+          GROUP BY g.id, g.name, g.about, g.created_at, g.organizer_id, g.image, u.email, u.name
           ORDER BY g.created_at DESC
         `;
         return groups.rows;
@@ -213,12 +216,13 @@ const resolvers = {
             g.organizer_id as "organizerId",
             g.image,
             COUNT(DISTINCT gm.user_id) as "memberCount",
-            u.email as "organizerEmail"
+            u.email as "organizerEmail",
+            u.name as "organizerName"
           FROM groups g
           LEFT JOIN group_memberships gm ON g.id = gm.group_id
           LEFT JOIN users u ON g.organizer_id = u.id
           WHERE g.id = ${id}
-          GROUP BY g.id, g.name, g.about, g.created_at, g.organizer_id, g.image, u.email
+          GROUP BY g.id, g.name, g.about, g.created_at, g.organizer_id, g.image, u.email, u.name
         `;
 
         if (group.rows.length === 0) {
@@ -420,6 +424,7 @@ const resolvers = {
           ...group.rows[0],
           memberCount: 1,
           organizerEmail: session.user.email,
+          organizerName: userResult.rows[0].name
         };
       } catch (error) {
         console.error("Error creating group:", error);
@@ -516,6 +521,7 @@ const resolvers = {
           ...group.rows[0],
           memberCount: 1,
           organizerEmail: session.user.email,
+          organizerName: userResult.rows[0].name
         };
       } catch (error) {
         console.error("Error updating group:", error);

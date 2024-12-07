@@ -21,6 +21,9 @@ const signupSchema = z.object({
   password: z.string().min(6, {
     message: "Password field is required and must be at least 6 characters",
   }),
+  name: z.string().min(2, {
+    message: "Name field is required and must be at least 2 characters",
+  }),
 });
 
 type SignupFormData = z.infer<typeof signupSchema>;
@@ -42,6 +45,7 @@ const Signup = () => {
     defaultValues: {
       email: "",
       password: "",
+      name: "",
     },
   });
 
@@ -87,6 +91,14 @@ const Signup = () => {
               <Input type="password" {...register("password")} />
               <FormMessage>
                 {errors.password && <span>{errors.password.message}</span>}
+              </FormMessage>
+            </FormItem>
+
+            <FormItem className="my-5">
+              <FormLabel>Name</FormLabel>
+              <Input type="text" {...register("name")} />
+              <FormMessage>
+                {errors.name && <span>{errors.name.message}</span>}
               </FormMessage>
             </FormItem>
 

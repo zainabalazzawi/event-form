@@ -15,6 +15,7 @@ const GET_GROUP_BY_ID = gql`
       createdAt
       organizerId
       organizerEmail
+      organizerName
       memberCount
       image
     }
@@ -72,7 +73,7 @@ export default function GroupPage() {
           </div>
           <div className="flex flex-row  gap-1">
             <User size={20} className="text-gray-400" /> Organized by
-            <span className="font-bold"> {group.organizerEmail}</span>
+            <span className="font-bold"> {group.organizerName}</span>
           </div>
         </div>
       </div>

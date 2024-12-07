@@ -38,6 +38,7 @@ const GET_GROUPS = gql`
       createdAt
       organizerId
       organizerEmail
+      organizerName
       memberCount
       image
     }
