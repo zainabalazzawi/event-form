@@ -169,44 +169,50 @@ const GroupListPage = () => {
                   </button>
                 )}
               </div>
-              <Dialog
-                open={!!groupToDelete}
-                onOpenChange={() => setGroupToDelete(null)}
-              >
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Delete Group</DialogTitle>
-                    <DialogDescription>
-                      Are you sure you want to delete this group? This action
-                      cannot be undone.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter className="flex gap-2 justify-end">
-                    <Button
-                      variant="outline"
-                      onClick={() => setGroupToDelete(null)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button variant="destructive" onClick={confirmDelete}>
-                      Delete
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              {groupToEdit && (
-                <EditGroupForm
-                  group={groupToEdit}
-                  isOpen={!!groupToEdit}
-                  onClose={() => setGroupToEdit(null)}
-                />
-              )}
             </div>
           ))
         ) : (
           <div>No groups found</div>
         )}
       </div>
+
+      <Dialog 
+        open={!!groupToDelete}
+        onOpenChange={(open) => !open && setGroupToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Group</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this group? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setGroupToDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              variant="destructive" 
+              onClick={confirmDelete}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {groupToEdit && (
+        <EditGroupForm
+          group={groupToEdit}
+          isOpen={!!groupToEdit}
+          onClose={() => setGroupToEdit(null)}
+        />
+      )}
     </div>
   );
 };

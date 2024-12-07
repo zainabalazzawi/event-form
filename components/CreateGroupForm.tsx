@@ -12,6 +12,8 @@ import { gql, useApolloClient } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { ImageUpload } from "./ImageUpload";
 import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const CREATE_GROUP = gql`
   mutation CreateGroup($name: String!, $about: String!, $image: String) {
@@ -32,6 +34,7 @@ const CreateGroupForm = () => {
   const client = useApolloClient();
   const router = useRouter();
   const { data: session } = useSession();
+  const [step, setStep] = useState(1);
 
   const formSchema = z.object({
     name: z.string().min(1, { message: "Name is required" }),
@@ -51,6 +54,7 @@ const CreateGroupForm = () => {
   const {
     register,
     handleSubmit,
+    trigger,
     formState: { errors },
   } = form;
 
@@ -78,44 +82,121 @@ const CreateGroupForm = () => {
     },
   });
 
+  const handleNext = async (e: FormEvent<HTMLInputElement>) => {
+    e.preventDefault(); 
+    const fieldsToValidate = {
+      1: ["name"] as const,
+      2: ["about"] as const,
+      3: ["image"] as const,
+    }[step];
+
+    const isValid = await trigger(fieldsToValidate);
+    if (isValid) {
+      setStep((prev) => Math.min(prev + 1, 3));
+    }
+  };
+
+  const handleBack = () => {
+    setStep((prev) => Math.max(prev - 1, 1));
+  };
+
   const onHandleSubmit = (fields: z.infer<typeof formSchema>) => {
     mutation.mutate(fields);
+  };
+
+  const renderStep = () => {
+    switch (step) {
+      case 1:
+        return (
+          <FormItem className="mb-4">
+            <FormLabel>Group Name</FormLabel>
+            <Input {...register("name")} placeholder="Enter your group name" />
+            <FormMessage>
+              {errors.name && <span>{errors.name.message}</span>}
+            </FormMessage>
+          </FormItem>
+        );
+      case 2:
+        return (
+          <FormItem className="mb-4">
+            <FormLabel>About</FormLabel>
+            <Textarea 
+              {...register("about")} 
+              placeholder="Tell us about your group"
+              className="min-h-[200px]"
+            />
+            <FormMessage>
+              {errors.about && <span>{errors.about.message}</span>}
+            </FormMessage>
+          </FormItem>
+        );
+      case 3:
+        return (
+          <FormItem className="mb-4">
+            <FormLabel>Group Image</FormLabel>
+            <ImageUpload {...register("image")} />
+            <FormMessage>
+              {errors.image && <span>{errors.image.message}</span>}
+            </FormMessage>
+          </FormItem>
+        );
+    }
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-6">Create a New Group</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Create a New Group</h2>
+          <div className="flex gap-2">
+            <div
+              className={`h-2 w-12 rounded ${
+                step >= 1 ? "bg-primary" : "bg-gray-200"
+              }`}
+            />
+            <div
+              className={`h-2 w-12 rounded ${
+                step >= 2 ? "bg-primary" : "bg-gray-200"
+              }`}
+            />
+            <div
+              className={`h-2 w-12 rounded ${
+                step >= 3 ? "bg-primary" : "bg-gray-200"
+              }`}
+            />
+          </div>
+        </div>
+
         <Form {...form}>
           <form onSubmit={handleSubmit(onHandleSubmit)}>
-            <FormItem className="mb-4">
-              <FormLabel>Group Name</FormLabel>
-              <Input {...register("name")} />
-              <FormMessage>
-                {errors.name && <span>{errors.name.message}</span>}
-              </FormMessage>
-            </FormItem>
+            {renderStep()}
 
-            <FormItem className="mb-4">
-              <FormLabel>About</FormLabel>
-              <Textarea {...register("about")} />
-              <FormMessage>
-                {errors.about && <span>{errors.about.message}</span>}
-              </FormMessage>
-            </FormItem>
+            <div className="flex justify-between mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                disabled={step === 1}
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
 
-            <FormItem className="my-5">
-              <FormLabel>Image</FormLabel>
-              <ImageUpload {...register("image")} />
-            </FormItem>
-
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? "Creating..." : "Create Group"}
-            </Button>
+              {step < 3 ? (
+                <Button 
+                  type="button"
+                  onClick={handleNext}
+                >
+                  Next <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              ) : (
+                <Button 
+                  type="submit"
+                  disabled={mutation.isPending}
+                >
+                  {mutation.isPending ? "Creating..." : "Create Group"}
+                </Button>
+              )}
+            </div>
           </form>
         </Form>
 
