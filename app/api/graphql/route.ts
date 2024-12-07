@@ -257,6 +257,25 @@ const resolvers = {
         throw new Error("Failed to fetch comments");
       }
     },
+    groupMembers: async (_: unknown, { groupId }: { groupId: number }) => {
+      try {
+        const memberships = await sql`
+          SELECT 
+            gm.id,
+            gm.user_id as "userId",
+            gm.group_id as "groupId",
+            gm.role,
+            gm.joined_at as "joinedAt"
+          FROM group_memberships gm
+          WHERE gm.group_id = ${groupId}
+        `;
+
+        return memberships.rows;
+      } catch (error) {
+        console.error("Error fetching group members:", error);
+        throw new Error("Failed to fetch group members");
+      }
+    },
   },
   Mutation: {
     createEvent: async (
@@ -526,6 +545,55 @@ const resolvers = {
       } catch (error) {
         console.error("Error updating group:", error);
         throw new Error("Failed to update group");
+      }
+    },
+    joinGroup: async (
+      _: unknown,
+      { userId, groupId }: { userId: number; groupId: number },
+      { session }: { session: Session | null }
+    ) => {
+      if (!session?.user?.email) {
+        throw new Error("You must be logged in to join a group");
+      }
+
+      try {
+        const membership = await sql`
+          INSERT INTO group_memberships (user_id, group_id, role, joined_at)
+          VALUES (${userId}, ${groupId}, 'member', NOW())
+          RETURNING 
+            id,
+            user_id as "userId",
+            group_id as "groupId",
+            role,
+            joined_at as "joinedAt"
+        `;
+
+        return membership.rows[0];
+      } catch (error) {
+        console.error("Error joining group:", error);
+        throw new Error("Failed to join group");
+      }
+    },
+
+    leaveGroup: async (
+      _: unknown,
+      { userId, groupId }: { userId: number; groupId: number },
+      { session }: { session: Session | null }
+    ) => {
+      if (!session?.user?.email) {
+        throw new Error("You must be logged in to leave a group");
+      }
+
+      try {
+        await sql`
+          DELETE FROM group_memberships 
+          WHERE user_id = ${userId} AND group_id = ${groupId}
+        `;
+
+        return true;
+      } catch (error) {
+        console.error("Error leaving group:", error);
+        throw new Error("Failed to leave group");
       }
     },
   },

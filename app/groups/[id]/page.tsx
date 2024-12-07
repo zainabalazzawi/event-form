@@ -5,6 +5,7 @@ import { gql, useApolloClient } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { User, Users } from "lucide-react";
 import Image from "next/image";
+import JoinGroupButton from "@/components/JoinGroupButton";
 
 const GET_GROUP_BY_ID = gql`
   query GetGroupById($id: Int!) {
@@ -50,31 +51,37 @@ export default function GroupPage() {
 
   return (
     <div className="bg-slate-50 h-full pb-[10rem]">
-      <div className="flex flex-row gap-10 w-full bg-white px-[4rem]  shadow-md py-10">
-        <div className="w-[55%]">
-          {group.image && (
-            <Image
-              src={group.image}
-              alt={group.name}
-              width={800}
-              height={400}
-              className="w-full h-64 object-cover rounded-lg"
-            />
-          )}
+      <div className=" flex flex-col w-full bg-white shadow-md py-10">
+        <div className="flex flex-row gap-10 px-[4rem]">
+          <div className="w-[55%]">
+            {group.image && (
+              <Image
+                src={group.image}
+                alt={group.name}
+                width={800}
+                height={400}
+                className="w-full h-64 object-cover rounded-lg"
+                // check object-cover
+              />
+            )}
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold mb-4">{group.name}</h1>
+            <div className="flex flex-row gap-1">
+              <Users size={20} className="text-gray-400" />
+              <span className="font-normal text-gray-600">
+                {group.memberCount} members
+              </span>
+            </div>
+            <div className="flex flex-row  gap-1">
+              <User size={20} className="text-gray-400" /> Organized by
+              <span className="font-bold"> {group.organizerName}</span>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <h1 className="text-2xl font-bold mb-4">{group.name}</h1>
-          <div className="flex flex-row gap-1">
-            <Users size={20} className="text-gray-400" />
-            <span className="font-normal text-gray-600">
-              {group.memberCount} members
-            </span>
-          </div>
-          <div className="flex flex-row  gap-1">
-            <User size={20} className="text-gray-400" /> Organized by
-            <span className="font-bold"> {group.organizerName}</span>
-          </div>
+        <div className="mt-4 pt-4 px-3 border-t border-gray-200">
+          <JoinGroupButton groupId={group.id} />
         </div>
       </div>
 

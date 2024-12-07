@@ -18,7 +18,7 @@ import {
 import { Button } from "./ui/button";
 import EditGroupForm from "./EditGroupForm";
 
-type Group = {
+export type Group = {
   id: number;
   name: string;
   about: string;

@@ -45,14 +45,21 @@ const Header = () => {
         </div>
 
         <div className="flex items-center">
-          {session && (
+          {session ? (
             <div className="flex items-center gap-4">
               <span>Welcome {session.user?.name}</span>
               <Button onClick={() => signOut({ callbackUrl: "/" })}>
                 Sign out
               </Button>
             </div>
+          ) : (
+            <SignInDialog>
+              <Button variant="outline" className="mr-4">
+                Sign in
+              </Button>
+            </SignInDialog>
           )}
+          
           {showCreateEventButton && (
             <>
               {session && (
