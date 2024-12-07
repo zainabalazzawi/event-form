@@ -39,6 +39,7 @@ export const authOptions: NextAuthOptions = {
           return {
             id: user.id.toString(),
             email: user.email,
+            name: user.name,
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -58,12 +59,14 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name ?? undefined;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.name = token.name ?? undefined;
       }
       return session;
     },

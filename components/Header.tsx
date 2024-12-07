@@ -47,7 +47,7 @@ const Header = () => {
         <div className="flex items-center">
           {session && (
             <div className="flex items-center gap-4">
-              <span>Welcome, {session.user?.email}</span>
+              <span>Welcome {session.user?.name}</span>
               <Button onClick={() => signOut({ callbackUrl: "/" })}>
                 Sign out
               </Button>
