@@ -82,7 +82,7 @@ const CreateGroupForm = () => {
     },
   });
 
-  const handleNext = async (e: FormEvent<HTMLInputElement>) => {
+  const handleNext = async (e: FormEvent) => {
     e.preventDefault(); 
     const fieldsToValidate = {
       1: ["name"] as const,
