@@ -596,6 +596,77 @@ const resolvers = {
         throw new Error("Failed to leave group");
       }
     },
+    createGroupEvent: async (
+      _: unknown,
+      {
+        groupId,
+        title,
+        description,
+        startDate,
+        endDate,
+        organizer,
+        email,
+        image,
+      }: {
+        groupId: number;
+        title: string;
+        description: string;
+        startDate: string;
+        endDate: string;
+        organizer: string;
+        email: string;
+        image?: string;
+      },
+      { session }: { session: Session | null }
+    ) => {
+      if (!session?.user?.email) {
+        throw new Error("You must be logged in to create an event");
+      }
+
+      try {
+        // Check if user is an admin of the group
+        const membershipCheck = await sql`
+          SELECT role 
+          FROM group_memberships gm
+          JOIN users u ON gm.user_id = u.id
+          WHERE gm.group_id = ${groupId} 
+          AND u.email = ${session.user.email}
+        `;
+
+        if (membershipCheck.rows.length === 0 || membershipCheck.rows[0].role !== 'admin') {
+          throw new Error("Only group admins can create events");
+        }
+
+        const event = await sql`
+          INSERT INTO events (
+            title, 
+            description, 
+            "startDate", 
+            "endDate", 
+            organizer, 
+            email, 
+            image,
+            group_id
+          )
+          VALUES (
+            ${title}, 
+            ${description}, 
+            ${startDate}, 
+            ${endDate}, 
+            ${organizer}, 
+            ${email}, 
+            ${image},
+            ${groupId}
+          )
+          RETURNING id, title, description, "startDate", "endDate", organizer, email, image
+        `;
+
+        return event.rows[0];
+      } catch (error) {
+        console.error("Error creating group event:", error);
+        throw new Error("Failed to create group event");
+      }
+    }
   },
 };
 
