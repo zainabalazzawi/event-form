@@ -112,7 +112,10 @@ const Comments = ({ eventId }: CommentsProps) => {
             </Button>
           </form>
         ) : (
-          <SignInDialog>
+          <SignInDialog
+          signInDescription='Sign in to join this event'
+          signUpDescription='Create an account to post comment'
+          >
             <Button variant="outline" className="w-full sm:w-auto">
               Sign in to comment
             </Button>

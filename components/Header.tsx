@@ -59,7 +59,7 @@ const Header = () => {
               </Button>
             </SignInDialog>
           )}
-          
+
           {showCreateEventButton && (
             <>
               {session && (
@@ -82,7 +82,11 @@ const Header = () => {
                 </Button>
               )}
               {!session && (
-                <SignInDialog redirectUrl="/create-group">
+                <SignInDialog
+                  signInDescription="Sign in to create group"
+                  signUpDescription="Create an account to create group"
+                  redirectUrl="/create-group"
+                >
                   <Button className="mx-4">Create Group</Button>
                 </SignInDialog>
               )}

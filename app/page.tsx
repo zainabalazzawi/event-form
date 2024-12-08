@@ -1,8 +1,8 @@
 "use client";
 
-import EventListPage from "@/components/EventListPage";
+import GroupListPage from "@/components/GroupListPage";
 
 
 export default function Home() {
-  return <EventListPage />;
+  return <GroupListPage />;
 }

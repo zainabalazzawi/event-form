@@ -146,7 +146,10 @@ const JoinGroupButton = ({ groupId }: JoinGroupButtonProps) => {
 
   if (!userId) {
     return (
-      <SignInDialog>
+      <SignInDialog
+      signInDescription="Sign in to join group"
+      signUpDescription="Create an account to join group"
+      >
         <Button>Join Group</Button>
       </SignInDialog>
     );

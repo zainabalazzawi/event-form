@@ -15,10 +15,17 @@ import { useRouter } from "next/navigation";
 type SignInDialogProps = {
   children: ReactNode;
   redirectUrl?: string;
+  signInDescription?: string;
+  signUpDescription?: string;
 };
 
-const SignInDialog = ({ children, redirectUrl}: SignInDialogProps) => {
-    const router = useRouter();
+const SignInDialog = ({ 
+  children, 
+  redirectUrl,
+  signInDescription,
+  signUpDescription
+}: SignInDialogProps) => {
+  const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
   const [open, setOpen] = useState(false);
   
@@ -28,6 +35,7 @@ const SignInDialog = ({ children, redirectUrl}: SignInDialogProps) => {
       router.push(redirectUrl);
     }
   };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -37,9 +45,7 @@ const SignInDialog = ({ children, redirectUrl}: SignInDialogProps) => {
         <DialogHeader>
           <DialogTitle>{isSignUp ? "Create Account" : "Sign In"}</DialogTitle>
           <DialogDescription>
-            {isSignUp
-              ? "Create an account to join events"
-              : "Sign in to join this event"}
+            {isSignUp ? signUpDescription : signInDescription}
           </DialogDescription>
         </DialogHeader>
 
