@@ -8,9 +8,9 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { ReactNode, useState } from "react";
-import LoginForm from "@/app/components/LoginForm";
-import SignupForm from "@/app/components/SignupForm";
 import { useRouter } from "next/navigation";
+import LoginForm from "./LoginForm";
+import SignupForm from "./SignupForm";
 
 type SignInDialogProps = {
   children: ReactNode;
