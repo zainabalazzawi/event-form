@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { formatTimeRange } from "@/lib/utils";
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import JoinEventButton from "@/components/JoinEventButton";

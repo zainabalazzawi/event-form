@@ -188,21 +188,21 @@ const resolvers = {
         throw new Error("Failed to fetch subscriptions");
       }
     },
-    event: async (_: unknown, { id }: { id: number }) => {
+    groupEvents: async (_: unknown, { groupId }: { groupId: number }) => {
       try {
-        const event = await sql`
-          SELECT * FROM events 
-          WHERE id = ${id}
+        const events = await sql`
+          SELECT e.*, 
+          COUNT(DISTINCT CASE WHEN s.status = 'join' THEN s.user_id END) as "attendeeCount"
+          FROM events e
+          LEFT JOIN subscriptions s ON e.id = s.event_id
+          WHERE e.group_id = ${groupId}
+          GROUP BY e.id, e.title, e.description, e."startDate", e."endDate", e.organizer, e.email, e.image
+          ORDER BY e."startDate" ASC
         `;
-
-        if (event.rows.length === 0) {
-          throw new Error("Event not found");
-        }
-
-        return event.rows[0];
+        return events.rows;
       } catch (error) {
-        console.error("Error fetching event:", error);
-        throw new Error("Failed to fetch event");
+        console.error("Error fetching group events:", error);
+        throw new Error("Failed to fetch group events");
       }
     },
     group: async (_: unknown, { id }: { id: number }) => {
@@ -443,7 +443,7 @@ const resolvers = {
           ...group.rows[0],
           memberCount: 1,
           organizerEmail: session.user.email,
-          organizerName: userResult.rows[0].name
+          organizerName: userResult.rows[0].name,
         };
       } catch (error) {
         console.error("Error creating group:", error);
@@ -540,7 +540,7 @@ const resolvers = {
           ...group.rows[0],
           memberCount: 1,
           organizerEmail: session.user.email,
-          organizerName: userResult.rows[0].name
+          organizerName: userResult.rows[0].name,
         };
       } catch (error) {
         console.error("Error updating group:", error);
@@ -633,7 +633,10 @@ const resolvers = {
           AND u.email = ${session.user.email}
         `;
 
-        if (membershipCheck.rows.length === 0 || membershipCheck.rows[0].role !== 'admin') {
+        if (
+          membershipCheck.rows.length === 0 ||
+          membershipCheck.rows[0].role !== "admin"
+        ) {
           throw new Error("Only group admins can create events");
         }
 
@@ -666,7 +669,7 @@ const resolvers = {
         console.error("Error creating group event:", error);
         throw new Error("Failed to create group event");
       }
-    }
+    },
   },
 };
 

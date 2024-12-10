@@ -11,7 +11,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import EventListPage from "@/components/EventListPage";
+import GroupEventList from "@/components/GroupEventList";
 
 const GET_GROUP_BY_ID = gql`
   query GetGroupById($id: Int!) {
@@ -132,7 +132,7 @@ export default function GroupPage() {
             </Button>
           )}
         </div>
-        <EventListPage />
+        <GroupEventList groupId={groupId} />
       </div>
       <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
         <DialogContent className="max-w-[800px]">
