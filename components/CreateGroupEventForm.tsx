@@ -113,7 +113,7 @@ const CreateGroupEventForm = ({
     onSuccess: (newEvent) => {
       console.log("Event created successfully:", newEvent);
       onSuccess?.();
-      router.push(`/events/${newEvent.id}`);
+      router.push(`/groups/${groupId}/events/${newEvent.id}`);
     },
     onError: (error) => {
       console.error("Error creating event:", error);

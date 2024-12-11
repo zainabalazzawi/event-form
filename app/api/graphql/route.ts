@@ -235,6 +235,21 @@ const resolvers = {
         throw new Error("Failed to fetch group");
       }
     },
+    event: async (_: unknown, { id }: { id: number }) => {
+      try {
+        const event = await sql`
+          SELECT * FROM events 
+          WHERE id = ${id}
+        `;
+        if (event.rows.length === 0) {
+          throw new Error("Event not found");
+        }
+        return event.rows[0];
+      } catch (error) {
+        console.error("Error fetching event:", error);
+        throw new Error("Failed to fetch event");
+      }
+    },
 
     comments: async (_: unknown, { eventId }: { eventId: number }) => {
       try {
@@ -278,22 +293,6 @@ const resolvers = {
     },
   },
   Mutation: {
-    createEvent: async (
-      _: unknown,
-      { title, description, startDate, endDate, organizer, email, image }: Event
-    ) => {
-      try {
-        const event = await sql`
-          INSERT INTO events (title, description, "startDate", "endDate", organizer, email, image)
-          VALUES (${title}, ${description}, ${startDate}, ${endDate}, ${organizer}, ${email}, ${image})
-          RETURNING id, title, description, "startDate", "endDate", organizer, email, image
-        `;
-        return event.rows[0];
-      } catch (error) {
-        console.error("Error creating event:", error);
-        throw new Error("Failed to create event");
-      }
-    },
     joinEvent: async (
       _: unknown,
       { userId, eventId }: { userId: number; eventId: number }
@@ -624,9 +623,8 @@ const resolvers = {
       }
 
       try {
-        // Check if user is an admin of the group
         const membershipCheck = await sql`
-          SELECT role 
+          SELECT role, u.id as user_id
           FROM group_memberships gm
           JOIN users u ON gm.user_id = u.id
           WHERE gm.group_id = ${groupId} 
@@ -639,7 +637,7 @@ const resolvers = {
         ) {
           throw new Error("Only group admins can create events");
         }
-
+        const userId = membershipCheck.rows[0].user_id;
         const event = await sql`
           INSERT INTO events (
             title, 
@@ -662,6 +660,11 @@ const resolvers = {
             ${groupId}
           )
           RETURNING id, title, description, "startDate", "endDate", organizer, email, image
+        `;
+
+        await sql`
+          INSERT INTO subscriptions (user_id, event_id, status)
+          VALUES (${userId}, ${event.rows[0].id}, 'join')
         `;
 
         return event.rows[0];

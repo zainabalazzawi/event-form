@@ -34,7 +34,7 @@ const getEventById = async (client: any, id: number) => {
 export default function EventPage() {
   const params = useParams();
   const client = useApolloClient();
-  const eventId = parseInt(params.id as string);
+  const eventId = parseInt(params.eventId as string);
 
   const {
     data: event,
