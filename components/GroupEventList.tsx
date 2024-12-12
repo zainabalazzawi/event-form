@@ -1,16 +1,25 @@
 "use client";
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useSearchStore } from "@/store/searchStore";
 import { formatTimeRange } from "@/lib/utils";
 import EditEventForm from "./EditEventForm";
-import { Calendar, CircleCheck, Pencil } from "lucide-react";
+import { Calendar, CircleCheck, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import JoinEventButton from "./JoinEventButton";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Button } from "./ui/button";
 type Event = {
   id: number;
   title: string;
@@ -23,6 +32,11 @@ type Event = {
   image: string;
 };
 
+const DELETE_EVENT = gql`
+  mutation DeleteEvent($id: Int!) {
+    deleteEvent(id: $id)
+  }
+`;
 const GET_GROUP_EVENTS = gql`
   query GetGroupEvents($groupId: Int!) {
     groupEvents(groupId: $groupId) {
@@ -53,10 +67,12 @@ interface GroupEventListProps {
 
 const GroupEventList = ({ groupId }: GroupEventListProps) => {
   const client = useApolloClient();
+  const queryClient = useQueryClient();
   const { data: session } = useSession();
   const userId = session?.user?.id ? parseInt(session.user.id) : null;
   const { searchQuery } = useSearchStore();
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<number | null>(null);
 
   const {
     data: events,
@@ -67,8 +83,36 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
     queryFn: () => getGroupEvents(client, groupId),
   });
 
+  const deleteEventMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      const { data } = await client.mutate({
+        mutation: DELETE_EVENT,
+        variables: { id: eventId },
+      });
+      return data.deleteEvent;
+    },
+    onSuccess: (_, deletedEventId) => {
+      queryClient.setQueryData(
+        ["groupEvents", groupId],
+        (oldEvents: Event[] = []) =>
+          oldEvents.filter((event) => event.id !== deletedEventId)
+      );
+      setEventToDelete(null);
+    },
+  });
+
+  const handleDelete = (eventId: number) => {
+    setEventToDelete(eventId);
+  };
+
+  const confirmDelete = () => {
+    if (eventToDelete) {
+      deleteEventMutation.mutate(eventToDelete);
+    }
+  };
+
   const filteredEvents = events?.filter(
-    (event:Event) =>
+    (event: Event) =>
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
@@ -100,18 +144,25 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
 
               <div className="p-5">
                 <div className="flex flex-row gap-2 items-center font-semibold hover:text-[#649C9E] hover:underline">
-                <Link href={`/groups/${groupId}/events/${event.id}`}>
+                  <Link href={`/groups/${groupId}/events/${event.id}`}>
                     <span className="font-bold text-xl">{event.title}</span>
                   </Link>
                   {userId &&
-                    session?.user?.email?.toLowerCase() ===
-                      event.email?.toLowerCase() && (
-                      <Pencil
-                        size={15}
-                        onClick={() => setEditingEvent(event)}
-                        className="cursor-pointer"
-                      />
-                    )}
+                session?.user?.email?.toLowerCase() ===
+                  event.email?.toLowerCase() && (
+                  <div className="flex gap-2">
+                    <Pencil
+                      size={15}
+                      onClick={() => setEditingEvent(event)}
+                      className="cursor-pointer hover:text-blue-600"
+                    />
+                    <Trash
+                      size={15}
+                      onClick={() => handleDelete(event.id)}
+                      className="cursor-pointer text-red-600 hover:text-red-600"
+                    />
+                  </div>
+                )}
                 </div>
                 <div className="text-base text-slate-600 font-semibold">
                   Hosted by:&nbsp;{event.organizer}
@@ -127,7 +178,9 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
                 </div>
                 <div className="flex felx-row items-center gap-3">
                   <CircleCheck size={15} className="text-gray-600" />
-                  <span className="font-light">{event.attendeeCount} going</span>
+                  <span className="font-light">
+                    {event.attendeeCount} going
+                  </span>
                 </div>
                 <div className="mt-4">
                   <JoinEventButton eventId={event.id} />
@@ -147,6 +200,32 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
           onClose={() => setEditingEvent(null)}
         />
       )}
+      <Dialog
+        open={!!eventToDelete}
+        onOpenChange={(open) => !open && setEventToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Event</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this event? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEventToDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button type="button" variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -163,7 +163,7 @@ const GroupListPage = () => {
                 {session?.user?.email === group.organizerEmail && (
                   <button
                     onClick={() => handleDelete(group.id)}
-                    className="text-red-800 hover:text-red-600"
+                    className="cursor-pointer text-red-800 hover:text-red-600"
                   >
                     <Trash />
                   </button>

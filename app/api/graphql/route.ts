@@ -128,6 +128,7 @@ const typeDefs = gql`
       image: String
     ): Event
     deleteGroup(id: Int!): Boolean
+    deleteEvent(id: Int!): Boolean
   }
 `;
 
@@ -488,6 +489,40 @@ const resolvers = {
       } catch (error) {
         console.error("Error deleting group:", error);
         throw new Error("Failed to delete group");
+      }
+    },
+    deleteEvent: async (
+      _: unknown,
+      { id }: { id: number },
+      { session }: { session: Session | null }
+    ) => {
+      if (!session?.user?.email) {
+        throw new Error("You must be logged in to delete an event");
+      }
+
+      try {
+        // Check if user is the organizer
+        const eventResult = await sql`
+          SELECT email FROM events WHERE id = ${id}
+        `;
+
+        if (eventResult.rows[0].id !== eventResult.rows[0].organizer_id) {
+          throw new Error("Only the event organizer can delete the event");
+        }
+
+        // Delete event subscriptions
+        await sql`DELETE FROM subscriptions WHERE event_id = ${id}`;
+
+        // Delete event comments
+        await sql`DELETE FROM comments WHERE event_id = ${id}`;
+
+        // Delete the event
+        await sql`DELETE FROM events WHERE id = ${id}`;
+
+        return true;
+      } catch (error) {
+        console.error("Error deleting event:", error);
+        throw new Error("Failed to delete event");
       }
     },
     updateGroup: async (
