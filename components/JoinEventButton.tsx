@@ -102,7 +102,7 @@ const JoinEventButton = ({ eventId }: JoinEventButtonProps) => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
     },
   });
-
+//check count  
   const handleJoinEvent = async () => {
     if (userId) {
       try {

@@ -4,6 +4,13 @@ import SignInDialog from "./SignInDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import { Group } from "./GroupListPage";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
 type JoinGroupButtonProps = {
   groupId: number;
@@ -147,20 +154,40 @@ const JoinGroupButton = ({ groupId }: JoinGroupButtonProps) => {
   if (!userId) {
     return (
       <SignInDialog
-      signInDescription="Sign in to join group"
-      signUpDescription="Create an account to join group"
+        signInDescription="Sign in to join group"
+        signUpDescription="Create an account to join group"
       >
         <Button>Join Group</Button>
       </SignInDialog>
     );
   }
 
-  return isMember ? (
-    <Button variant="outline" onClick={handleLeaveGroup}>
-      Leave Group
-    </Button>
-  ) : (
-    <Button onClick={handleJoinGroup} className="bg-red-800">Join Group</Button>
+  if (!isMember) {
+    return <Button onClick={handleJoinGroup}>Join Group</Button>;
+  }
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild className="w-[15%]">
+        <Button variant="outline">
+          You're a member
+          <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center" className="w-56">
+        {isMember ? (
+          <DropdownMenuItem
+            className="text-red-600 focus:text-red-600"
+            onClick={handleLeaveGroup}
+          >
+            Leave group
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={handleJoinGroup}>
+            Join group
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { useSearchStore } from "@/store/searchStore";
 import { formatTimeRange } from "@/lib/utils";
 import EditEventForm from "./EditEventForm";
-import { Calendar, CircleCheck, Pencil, Trash } from "lucide-react";
+import { Calendar, CircleCheck, Pencil, Plus, Trash } from "lucide-react";
 import Image from "next/image";
 import JoinEventButton from "./JoinEventButton";
 
@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
+import CreateGroupEventForm from "./CreateGroupEventForm";
 type Event = {
   id: number;
   title: string;
@@ -53,6 +54,18 @@ const GET_GROUP_EVENTS = gql`
   }
 `;
 
+const CHECK_GROUP_ADMIN = gql`
+  query CheckGroupAdmin($groupId: Int!) {
+    groupMembers(groupId: $groupId) {
+      id
+      role
+      userId
+      groupId
+      joinedAt
+    }
+  }
+`;
+
 const getGroupEvents = async (client: any, groupId: number) => {
   const { data } = await client.query({
     query: GET_GROUP_EVENTS,
@@ -73,6 +86,7 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
   const { searchQuery } = useSearchStore();
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
+  const [showEventDialog, setShowEventDialog] = useState(false);
 
   const {
     data: events,
@@ -81,6 +95,21 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
   } = useQuery({
     queryKey: ["groupEvents", groupId],
     queryFn: () => getGroupEvents(client, groupId),
+  });
+
+  const { data: memberData } = useQuery({
+    queryKey: ["groupAdmin", groupId, session?.user?.email],
+    queryFn: async () => {
+      if (!session?.user?.email) return null;
+      const { data } = await client.query({
+        query: CHECK_GROUP_ADMIN,
+        variables: {
+          groupId,
+        },
+      });
+      return data.groupMembers;
+    },
+    enabled: !!session?.user?.email,
   });
 
   const deleteEventMutation = useMutation({
@@ -121,8 +150,37 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
   if (isLoading) return <div>Loading events...</div>;
   if (isError) return <div>Error loading events</div>;
 
+  console.log(memberData?.some(
+    (member: any) =>
+      member.role === "admin" &&
+      member.userId === parseInt(session?.user?.id as string)
+  ));
   return (
     <div className="px-8 mt-8 pb-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Upcoming events</h1>
+        {memberData?.some(
+          (member: any) =>
+            member.role === "admin" &&
+            member.userId === parseInt(session?.user?.id as string)
+        ) && (
+          <Button
+            onClick={() => setShowEventDialog(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus size={16} />
+            Create Event
+          </Button>
+        )}
+      </div>
+      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
+        <DialogContent className="max-w-[800px]">
+          <CreateGroupEventForm
+            groupId={groupId}
+            onSuccess={() => setShowEventDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
       <div className="grid grid-cols-4 gap-4">
         {filteredEvents && filteredEvents.length > 0 ? (
           filteredEvents.map((event: Event) => (
@@ -148,21 +206,21 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
                     <span className="font-bold text-xl">{event.title}</span>
                   </Link>
                   {userId &&
-                session?.user?.email?.toLowerCase() ===
-                  event.email?.toLowerCase() && (
-                  <div className="flex gap-2">
-                    <Pencil
-                      size={15}
-                      onClick={() => setEditingEvent(event)}
-                      className="cursor-pointer hover:text-blue-600"
-                    />
-                    <Trash
-                      size={15}
-                      onClick={() => handleDelete(event.id)}
-                      className="cursor-pointer text-red-600 hover:text-red-600"
-                    />
-                  </div>
-                )}
+                    session?.user?.email?.toLowerCase() ===
+                      event.email?.toLowerCase() && (
+                      <div className="flex gap-2">
+                        <Pencil
+                          size={15}
+                          onClick={() => setEditingEvent(event)}
+                          className="cursor-pointer hover:text-blue-600"
+                        />
+                        <Trash
+                          size={15}
+                          onClick={() => handleDelete(event.id)}
+                          className="cursor-pointer text-red-600 hover:text-red-600"
+                        />
+                      </div>
+                    )}
                 </div>
                 <div className="text-base text-slate-600 font-semibold">
                   Hosted by:&nbsp;{event.organizer}

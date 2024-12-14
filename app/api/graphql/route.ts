@@ -285,7 +285,6 @@ const resolvers = {
           FROM group_memberships gm
           WHERE gm.group_id = ${groupId}
         `;
-
         return memberships.rows;
       } catch (error) {
         console.error("Error fetching group members:", error);
