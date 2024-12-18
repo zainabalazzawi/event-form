@@ -23,19 +23,20 @@ type GroupMembership = {
   role: string;
   joinedAt: string;
 };
-
 const GET_GROUP_MEMBERSHIPS = gql`
   query GetGroupMemberships($groupId: Int!) {
     groupMembers(groupId: $groupId) {
-      id
-      userId
-      groupId
-      role
-      joinedAt
+      members {
+        id
+        userId
+        groupId
+        role
+        joinedAt
+      }
+      pageSize
     }
   }
 `;
-
 const JOIN_GROUP = gql`
   mutation JoinGroup($userId: Int!, $groupId: Int!) {
     joinGroup(userId: $userId, groupId: $groupId) {
@@ -68,13 +69,13 @@ const JoinGroupButton = ({ groupId }: JoinGroupButtonProps) => {
     return data.groupMembers;
   };
 
-  const { data: memberships } = useQuery({
+  const { data: membershipsData } = useQuery({
     queryKey: ["groupMembers", groupId],
     queryFn: () => getGroupMemberships(client, groupId),
     enabled: !!groupId,
   });
 
-  const isMember = memberships?.some(
+  const isMember = membershipsData?.memberships?.some(
     (m: GroupMembership) => m.userId === userId
   );
 

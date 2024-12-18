@@ -57,11 +57,14 @@ const GET_GROUP_EVENTS = gql`
 const CHECK_GROUP_ADMIN = gql`
   query CheckGroupAdmin($groupId: Int!) {
     groupMembers(groupId: $groupId) {
-      id
-      role
-      userId
-      groupId
-      joinedAt
+      members {
+        id
+        role
+        userId
+        groupId
+        joinedAt
+      }
+      pageSize
     }
   }
 `;
@@ -111,7 +114,6 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
     },
     enabled: !!session?.user?.email,
   });
-
   const deleteEventMutation = useMutation({
     mutationFn: async (eventId: number) => {
       const { data } = await client.mutate({
@@ -150,16 +152,11 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
   if (isLoading) return <div>Loading events...</div>;
   if (isError) return <div>Error loading events</div>;
 
-  console.log(memberData?.some(
-    (member: any) =>
-      member.role === "admin" &&
-      member.userId === parseInt(session?.user?.id as string)
-  ));
   return (
     <div className="px-8 mt-8 pb-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Upcoming events</h1>
-        {memberData?.some(
+        {memberData?.member?.some(
           (member: any) =>
             member.role === "admin" &&
             member.userId === parseInt(session?.user?.id as string)

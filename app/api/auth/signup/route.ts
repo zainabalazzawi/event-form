@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { sql } from "@vercel/postgres";
 
 export async function POST(req: Request) {
-  const { password, email, name } = await req.json();
+  const { password, email, name, image } = await req.json();
   try {
     const userExistsQuery = await sql`
       SELECT COUNT(*) > 0 AS exists
@@ -21,9 +21,9 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await sql`
-      INSERT INTO users (email, password, name)
-      VALUES (${email}, ${hashedPassword}, ${name})
-      RETURNING id, email, name
+      INSERT INTO users (email, password, name, image)
+      VALUES (${email}, ${hashedPassword}, ${name}, ${image})
+      RETURNING id, email, name, image
     `;
 
     return NextResponse.json({ message: "User registered successfully" });

@@ -59,9 +59,16 @@ const typeDefs = gql`
     id: Int!
     userId: Int!
     groupId: Int!
+    name: String!
+    image: String
     role: String!
     joinedAt: String!
   }
+  type GroupMembersResponse {
+    members: [GroupMembership!]!
+    pageSize: Int!
+  }
+
   type Subscription {
     id: Int!
     userId: Int!
@@ -85,7 +92,7 @@ const typeDefs = gql`
     groups: [Group!]!
     group(id: Int!): Group
     groupEvents(groupId: Int!): [Event!]!
-    groupMembers(groupId: Int!): [GroupMembership!]!
+    groupMembers(groupId: Int!): GroupMembersResponse!
     userGroups(userId: Int!): [Group!]!
   }
 
@@ -275,17 +282,25 @@ const resolvers = {
     },
     groupMembers: async (_: unknown, { groupId }: { groupId: number }) => {
       try {
-        const memberships = await sql`
+        const members = await sql`
           SELECT 
             gm.id,
             gm.user_id as "userId",
             gm.group_id as "groupId",
             gm.role,
-            gm.joined_at as "joinedAt"
+            gm.joined_at as "joinedAt",
+            u.name,
+            u.image
           FROM group_memberships gm
+          JOIN users u ON gm.user_id = u.id
           WHERE gm.group_id = ${groupId}
+          ORDER BY gm.joined_at DESC
         `;
-        return memberships.rows;
+
+        return {
+          members: members.rows,
+          pageSize: 10
+        };
       } catch (error) {
         console.error("Error fetching group members:", error);
         throw new Error("Failed to fetch group members");
