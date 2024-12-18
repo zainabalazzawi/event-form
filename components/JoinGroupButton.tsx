@@ -75,10 +75,10 @@ const JoinGroupButton = ({ groupId }: JoinGroupButtonProps) => {
     enabled: !!groupId,
   });
 
-  const isMember = membershipsData?.memberships?.some(
+  const isMember = membershipsData?.members?.some(
     (m: GroupMembership) => m.userId === userId
   );
-
+  
   const joinGroupMutation = useMutation({
     mutationFn: async () => {
       const { data } = await client.mutate({

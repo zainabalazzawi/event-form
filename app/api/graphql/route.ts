@@ -299,7 +299,7 @@ const resolvers = {
 
         return {
           members: members.rows,
-          pageSize: 10
+          pageSize: 3
         };
       } catch (error) {
         console.error("Error fetching group members:", error);
