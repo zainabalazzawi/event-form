@@ -68,7 +68,20 @@ const typeDefs = gql`
     members: [GroupMembership!]!
     pageSize: Int!
   }
+  type EventMember {
+    id: Int!
+    userId: Int!
+    eventId: Int!
+    name: String!
+    role: String!
+    status: String!
+    image: String
+  }
 
+  type EventMembersResponse {
+    members: [EventMember!]!
+    pageSize: Int!
+  }
   type Subscription {
     id: Int!
     userId: Int!
@@ -93,6 +106,7 @@ const typeDefs = gql`
     group(id: Int!): Group
     groupEvents(groupId: Int!): [Event!]!
     groupMembers(groupId: Int!): GroupMembersResponse!
+    eventMembers(eventId: Int!): EventMembersResponse!
     userGroups(userId: Int!): [Group!]!
   }
 
@@ -299,11 +313,38 @@ const resolvers = {
 
         return {
           members: members.rows,
-          pageSize: 3
+          pageSize: 5,
         };
       } catch (error) {
         console.error("Error fetching group members:", error);
         throw new Error("Failed to fetch group members");
+      }
+    },
+    eventMembers: async (_: unknown, { eventId }: { eventId: number }) => {
+      try {
+        const members = await sql`
+          SELECT 
+            s.id,
+            s.user_id as "userId",
+            s.event_id as "eventId",
+            s.status,
+            u.name,
+            u.image,
+            COALESCE(gm.role, 'member') as role
+          FROM subscriptions s
+          JOIN users u ON s.user_id = u.id
+          LEFT JOIN group_memberships gm ON u.id = gm.user_id
+          WHERE s.event_id = ${eventId}
+          ORDER BY s.created_at DESC
+        `;
+
+        return {
+          members: members.rows,
+          pageSize: 5,
+        };
+      } catch (error) {
+        console.error("Error fetching event members:", error);
+        throw new Error("Failed to fetch event members");
       }
     },
   },

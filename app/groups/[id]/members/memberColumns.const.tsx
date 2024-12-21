@@ -1,5 +1,5 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ColumnDef } from "@tanstack/react-table"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 type Member = {
   id: number
@@ -9,22 +9,22 @@ type Member = {
 }
 
 export const memberColumns: ColumnDef<Member>[] = [
-  // {
-  //   id: "avatar",
-  //   header: "",
-  //   cell: ({ row }) => {
-  //     const member = row.original
-  //     return (
-  //       <Avatar>
-  //         <AvatarImage src={member.image} />
-  //         <AvatarFallback>
-  //           {member.name.split(" ").map((n) => n[0]).join("")}
-  //         </AvatarFallback>
-  //       </Avatar>
-  //     )
-  //   },
-  //   size: 70,
-  // },
+  {
+    id: "avatar",
+    header: "avatar",
+    cell: ({ row }) => {
+      const member = row.original
+      return (
+        <Avatar>
+          <AvatarImage src={member.image} />
+          <AvatarFallback>
+            {member?.name?.split(" ").map((n) => n[0]).join("")}
+          </AvatarFallback>
+        </Avatar>
+      )
+    },
+    size: 70,
+  },
   {
     accessorKey: "name",
     header: "Name",
@@ -46,3 +46,6 @@ export const memberColumns: ColumnDef<Member>[] = [
     size: 70,
   }
 ] 
+
+
+

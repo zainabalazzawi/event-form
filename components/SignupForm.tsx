@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { ImageUpload } from "./ImageUpload";
 
 const signupSchema = z.object({
   email: z
@@ -20,6 +21,7 @@ const signupSchema = z.object({
   name: z.string().min(2, {
     message: "name field is required",
   }),
+  image: z.string().optional(),
 });
 
 type SignupFormData = z.infer<typeof signupSchema>;
@@ -31,6 +33,7 @@ const SignupForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       email: "",
       password: "",
       name: "",
+      image: "",
     },
   });
 
@@ -87,7 +90,13 @@ const SignupForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             {errors.password && <span>{errors.password.message}</span>}
           </FormMessage>
         </FormItem>
-
+        <FormItem>
+          <FormLabel>Profile Image</FormLabel>
+          <ImageUpload name="image" />
+          <FormMessage>
+            {errors.image && <span>{errors.image.message}</span>}
+          </FormMessage>
+        </FormItem>
         <Button type="submit" className="w-full" disabled={mutation.isPending}>
           {mutation.isPending ? "Signing up..." : "Sign up"}
         </Button>

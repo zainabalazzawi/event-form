@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import JoinEventButton from "@/components/JoinEventButton";
 import Comments from "@/components/Comments";
+import { DataTable } from "@/components/ui/data-table";
+import { eventMemberColumns } from "./eventMemberColumns.const";
 
 const GET_EVENT_BY_ID = gql`
   query GetEventById($id: Int!) {
@@ -22,13 +24,34 @@ const GET_EVENT_BY_ID = gql`
     }
   }
 `;
-
+const GET_EVENT_MEMBERS = gql`
+  query GetEventMembers($eventId: Int!) {
+    eventMembers(eventId: $eventId) {
+      members {
+        id
+        name
+        role
+        status
+        image
+      }
+      pageSize
+    }
+  }
+`;
 const getEventById = async (client: any, id: number) => {
   const { data } = await client.query({
     query: GET_EVENT_BY_ID,
     variables: { id },
   });
   return data.event;
+};
+
+const getEventMembers = async (client: any, eventId: number) => {
+  const { data } = await client.query({
+    query: GET_EVENT_MEMBERS,
+    variables: { eventId },
+  });
+  return data.eventMembers;
 };
 
 export default function EventPage() {
@@ -43,6 +66,11 @@ export default function EventPage() {
   } = useQuery({
     queryKey: ["event", eventId],
     queryFn: () => getEventById(client, eventId),
+  });
+
+  const { data: membersData, isLoading: membersLoading } = useQuery({
+    queryKey: ["eventMembers", eventId],
+    queryFn: () => getEventMembers(client, eventId),
   });
 
   if (isLoading) return <div>Loading...</div>;
@@ -73,6 +101,14 @@ export default function EventPage() {
             <h2 className="font-bold">Details</h2>
             <p>{event.description}</p>
             <Comments eventId={event.id} />
+            <div>
+            <h2 className="font-bold mb-4">Attendees</h2>
+            <DataTable
+              columns={eventMemberColumns}
+              data={membersData?.members || []}
+              pageSize={membersData?.pageSize}
+            />
+          </div>
           </div>
         </div>
 
