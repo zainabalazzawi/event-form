@@ -8,6 +8,13 @@ import { Input } from "./ui/input";
 import { useSearchStore } from "@/store/searchStore";
 import { useDebouncedCallback } from "use-debounce";
 import { Search } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 const Header = () => {
   const { data: session } = useSession();
@@ -15,12 +22,7 @@ const Header = () => {
   const pathname = usePathname();
   const { searchQuery, setSearchQuery } = useSearchStore();
 
-  const showCreateEventButton = pathname !== "/create-event";
   const showCreateGroupButton = pathname !== "/create-group";
-
-  const handleCreateEventClick = () => {
-    router.push("/create-event");
-  };
 
   const handleCreateGroupClick = () => {
     router.push("/create-group");
@@ -45,35 +47,6 @@ const Header = () => {
         </div>
 
         <div className="flex items-center">
-          {session ? (
-            <div className="flex items-center gap-4">
-              <span>Welcome {session.user?.name}</span>
-              <Button onClick={() => signOut({ callbackUrl: "/" })}>
-                Sign out
-              </Button>
-            </div>
-          ) : (
-            <SignInDialog>
-              <Button variant="outline" className="mr-4">
-                Sign in
-              </Button>
-            </SignInDialog>
-          )}
-
-          {showCreateEventButton && (
-            <>
-              {session && (
-                <Button onClick={handleCreateEventClick} className="mx-4">
-                  Create Event
-                </Button>
-              )}
-              {!session && (
-                <SignInDialog redirectUrl="/create-event">
-                  <Button className="mx-4">Create Event</Button>
-                </SignInDialog>
-              )}
-            </>
-          )}
           {showCreateGroupButton && (
             <>
               {session && (
@@ -87,10 +60,40 @@ const Header = () => {
                   signUpDescription="Create an account to create group"
                   redirectUrl="/create-group"
                 >
-                  <Button className="mx-4">Create Group</Button>
+                  <Button className="mx-4">start new group</Button>
                 </SignInDialog>
               )}
             </>
+          )}
+          {session && <div className="mr-7">Welcome {session.user?.name}</div>}
+          {!session ? (
+            <SignInDialog>
+              <Button variant="outline" className="mr-4">
+                Sign in
+              </Button>
+            </SignInDialog>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar>
+                  <AvatarImage src={session?.user?.image ?? ""} />
+                  <AvatarFallback>
+                    {session?.user?.name
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
