@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { UploadCloud, Trash, Loader2 } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
 import { FormControl, FormItem, FormMessage } from "./ui/form";
+import axios from "axios";
 
 interface ImageUploadProps {
   name: string;
@@ -26,15 +27,22 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
       fileInputRef.current?.click();
     };
 
-    const handleFile = (file: File): Promise<string> => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          resolve(result);
-        };
-        reader.readAsDataURL(file);
-      });
+    const handleFile = async (file: File): Promise<string> => {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await axios.post('/api/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+    
+        return response.data.url;
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        throw error;
+      }
     };
 
     return (
@@ -84,6 +92,7 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
                       if (file && file.type.startsWith("image/")) {
                         setUploadLoading(true);
                         const imageUrl = await handleFile(file);
+                        console.log("imageUrl",imageUrl)
                         onChange(imageUrl);
                         setUploadLoading(false);
                       }

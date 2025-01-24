@@ -40,6 +40,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id.toString(),
             email: user.email,
             name: user.name,
+            image: user.image,
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -60,6 +61,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.name = user.name ?? undefined;
+        token.image = user.image ?? undefined
       }
       return token;
     },
@@ -67,6 +69,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name ?? undefined;
+        session.user.image = token.image ?? undefined;
       }
       return session;
     },
