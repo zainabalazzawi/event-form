@@ -1,10 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import Image from "next/image";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
@@ -19,12 +16,12 @@ export default function ProfilePage() {
 
         <div className="flex flex-col items-center">
           {session?.user?.image ? (
-            <div className={`${sizeClassName}`}>
+            <div className="relative w-80 h-80">
               <Image
                 src={session?.user?.image}
                 alt="Profile"
                 fill
-                className="object-cover"
+                className="rounded-full object-cover"
               />
             </div>
           ) : (

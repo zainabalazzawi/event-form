@@ -76,7 +76,7 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar>
-                  <AvatarImage src={session?.user?.image ?? ""} />
+                  <AvatarImage src={session?.user?.image ?? ""} className="object-cover"/>
                   <AvatarFallback>
                     {session?.user?.name
                       ?.split(" ")

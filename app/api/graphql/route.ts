@@ -310,9 +310,14 @@ const resolvers = {
           WHERE gm.group_id = ${groupId}
           ORDER BY gm.joined_at DESC
         `;
-
+        const transformedMembers = members.rows.map((member) => ({
+          id: member.id,
+          name: member.name,
+          role: member.role,
+          image: member.image,
+        }));
         return {
-          members: members.rows,
+          members: transformedMembers,
           pageSize: 5,
         };
       } catch (error) {

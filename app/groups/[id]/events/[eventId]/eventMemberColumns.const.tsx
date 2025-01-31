@@ -17,7 +17,7 @@ export const eventMemberColumns: ColumnDef<EventMember>[] = [
       const member = row.original;
       return (
         <Avatar>
-          <AvatarImage src={member.image} />
+          <AvatarImage src={member.image} className="object-cover" />
           <AvatarFallback>
             {member?.name
               ?.split(" ")

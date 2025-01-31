@@ -28,18 +28,14 @@ const GET_GROUP_MEMBERS_LIST = gql`
     groupMembers(groupId: $groupId) {
       members {
         id
-        userId
-        groupId
         name
         role
         image
-        joinedAt
       }
       pageSize
     }
   }
 `;
-
 const getGroupById = async (client: any, id: number) => {
   const { data } = await client.query({
     query: GET_GROUP_BY_ID,
@@ -58,15 +54,18 @@ const MembersPage = () => {
     queryFn: () => getGroupById(client, groupId),
   });
 
+  const getGroupMembers = async (client: any, groupId: number) => {
+    const { data } = await client.query({
+      query: GET_GROUP_MEMBERS_LIST,
+      variables: { groupId },
+    });
+    console.log("Raw GraphQL response:", data); // Debug log
+    return data.groupMembers;
+  };
+
   const { data: membersData, isLoading: membersLoading } = useQuery({
     queryKey: ["groupMembers", groupId],
-    queryFn: async () => {
-      const { data } = await client.query({
-        query: GET_GROUP_MEMBERS_LIST,
-        variables: { groupId },
-      });
-      return data.groupMembers;
-    },
+    queryFn: () => getGroupMembers(client, groupId),
   });
 
   if (groupLoading || membersLoading) return <div>Loading...</div>;

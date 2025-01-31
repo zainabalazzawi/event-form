@@ -14,9 +14,10 @@ export const memberColumns: ColumnDef<Member>[] = [
     header: "avatar",
     cell: ({ row }) => {
       const member = row.original
+      
       return (
         <Avatar>
-          <AvatarImage src={member.image} />
+          <AvatarImage src={member?.image} className="object-cover" />
           <AvatarFallback>
             {member?.name?.split(" ").map((n) => n[0]).join("")}
           </AvatarFallback>
@@ -35,7 +36,6 @@ export const memberColumns: ColumnDef<Member>[] = [
         </div>
       );
     },
-    size: 70,
   },
   {
     accessorKey: "role",
