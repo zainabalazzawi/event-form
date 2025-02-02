@@ -21,7 +21,7 @@ const GroupHeader = ({ group }: GroupHeaderProps) => {
     <div className="flex flex-col w-full bg-white shadow-md pt-3">
       <div className="flex flex-row gap-10 px-[4rem]">
         <div className="w-[55%]">
-          {group.image && (
+          {group?.image && (
             <Image
               src={group.image}
               alt={group.name}

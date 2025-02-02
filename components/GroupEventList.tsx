@@ -21,7 +21,7 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import CreateGroupEventForm from "./CreateGroupEventForm";
-type Event = {
+ export type Event = {
   id: number;
   title: string;
   description: string;
@@ -244,7 +244,8 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
                   </span>
                 </div>
                 <div className="mt-4">
-                  <JoinEventButton eventId={event.id} />
+                  <JoinEventButton eventId={event.id} groupId={groupId} />
+
                 </div>
               </div>
             </div>

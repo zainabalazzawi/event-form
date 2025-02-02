@@ -4,9 +4,11 @@ import { Toggle } from "./ui/toggle";
 import SignInDialog from "./SignInDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
+import { Event } from "./GroupEventList";
 
 type JoinEventButtonProps = {
   eventId: number;
+  groupId?: number;
 };
 
 type Subscription = {
@@ -57,7 +59,7 @@ const getSubscriptions = async (client: any, userId: number) => {
   return data.subscriptions;
 };
 
-const JoinEventButton = ({ eventId }: JoinEventButtonProps) => {
+const JoinEventButton = ({ eventId, groupId }: JoinEventButtonProps) => {
   const { data: session } = useSession();
   const userId = session?.user?.id ? parseInt(session.user.id) : null;
   const client = useApolloClient();
@@ -86,6 +88,16 @@ const JoinEventButton = ({ eventId }: JoinEventButtonProps) => {
         ["subscriptions", userId],
         (old: Subscription[] = []) => [...old, data]
       );
+
+      queryClient.setQueryData(
+        ["groupEvents", groupId],
+        (oldEvents: Event[] = []) =>
+          oldEvents.map((event) =>
+            event.id === eventId
+              ? { ...event, attendeeCount: event.attendeeCount + 1 }
+              : event
+          )
+      );
     },
   });
 
@@ -97,9 +109,24 @@ const JoinEventButton = ({ eventId }: JoinEventButtonProps) => {
       });
       return data.updateJoinStatus;
     },
-    onSuccess: () => {
+    onSuccess: (updatedSubscription) => {
       queryClient.invalidateQueries({ queryKey: ["subscriptions", userId] });
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+      
+      queryClient.setQueryData(
+        ["groupEvents", groupId],
+        (oldEvents: Event[] = []) =>
+          oldEvents.map((event) =>
+            event.id === eventId
+              ? {
+                  ...event,
+                  attendeeCount:
+                    updatedSubscription.status === "join"
+                      ? event.attendeeCount + 1
+                      : Math.max(event.attendeeCount - 1, 0),
+                }
+              : event
+          )
+      );
     },
   });
 //check count  

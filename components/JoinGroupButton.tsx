@@ -22,6 +22,8 @@ type GroupMembership = {
   groupId: number;
   role: string;
   joinedAt: string;
+  name?: string;
+  image?: string;
 };
 const GET_GROUP_MEMBERSHIPS = gql`
   query GetGroupMemberships($groupId: Int!) {
@@ -32,6 +34,8 @@ const GET_GROUP_MEMBERSHIPS = gql`
         groupId
         role
         joinedAt
+        name
+        image
       }
       pageSize
     }
@@ -90,17 +94,17 @@ const JoinGroupButton = ({ groupId }: JoinGroupButtonProps) => {
     onSuccess: (newMembership) => {
       queryClient.setQueryData(
         ["groupMembers", groupId],
-        (old: GroupMembership[] = []) => [...old, newMembership]
+        (old: { members: GroupMembership[], pageSize: number } = { members: [], pageSize: 5 }) => ({
+          ...old,
+          members: [...(old.members || []), {
+            ...newMembership,
+            name: session?.user?.name,
+            image: session?.user?.image
+          }]
+        })
       );
 
-      queryClient.setQueryData(["groups"], (oldGroups: Group[] = []) =>
-        oldGroups.map((group) =>
-          group.id === groupId
-            ? { ...group, memberCount: group.memberCount + 1 }
-            : group
-        )
-      );
-
+  
       queryClient.setQueryData(["group", groupId], (oldGroup: Group) =>
         oldGroup
           ? { ...oldGroup, memberCount: oldGroup.memberCount + 1 }
@@ -120,18 +124,12 @@ const JoinGroupButton = ({ groupId }: JoinGroupButtonProps) => {
     onSuccess: () => {
       queryClient.setQueryData(
         ["groupMembers", groupId],
-        (old: GroupMembership[] = []) =>
-          old?.filter((member) => member.userId !== userId) || []
+        (old: { members: GroupMembership[], pageSize: number } = { members: [], pageSize: 5 }) => ({
+          ...old,
+          members: old.members.filter((m: GroupMembership) => m.userId !== userId)
+        })
       );
-
-      queryClient.setQueryData(["groups"], (oldGroups: Group[] = []) =>
-        oldGroups.map((group) =>
-          group.id === groupId
-            ? { ...group, memberCount: Math.max(group.memberCount - 1, 0) }
-            : group
-        )
-      );
-
+ 
       queryClient.setQueryData(["group", groupId], (oldGroup: Group) =>
         oldGroup
           ? { ...oldGroup, memberCount: Math.max(oldGroup.memberCount - 1, 0) }

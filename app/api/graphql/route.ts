@@ -312,9 +312,12 @@ const resolvers = {
         `;
         const transformedMembers = members.rows.map((member) => ({
           id: member.id,
+          userId: member.userId,
+          groupId: member.groupId,
           name: member.name,
           role: member.role,
-          image: member.image,
+          joinedAt: member.joinedAt,
+          image: member.image
         }));
         return {
           members: transformedMembers,
