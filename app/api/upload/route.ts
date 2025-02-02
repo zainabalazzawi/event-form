@@ -11,6 +11,8 @@ const storage = new Storage({
 
 const bucket = storage.bucket(process.env.GOOGLE_CLOUD_BUCKET_NAME || "");
 
+console.log('check bucket',bucket)
+console.log('check GOOGLE_CLOUD_BUCKET_NAME',process.env.GOOGLE_CLOUD_BUCKET_NAME)
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
