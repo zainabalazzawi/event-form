@@ -40,14 +40,20 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
           },
         });
 
+        console.log('Upload response:', response.data);
+
         if (!response.data.url) {
           throw new Error('Upload failed - no URL returned');
         }
     
         return response.data.url;
       } catch (error: any) {
-        console.error('Error uploading file:', error);
-        setUploadError(error.response?.data?.error || error.message || 'Upload failed');
+        console.error('Error uploading file:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
+        setUploadError(error.response?.data?.details || error.response?.data?.error || error.message);
         throw error;
       }
     };

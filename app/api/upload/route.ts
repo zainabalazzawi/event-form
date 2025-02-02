@@ -31,14 +31,29 @@ console.log('check bucket',bucket)
 console.log('check GOOGLE_CLOUD_BUCKET_NAME',process.env.GOOGLE_CLOUD_BUCKET_NAME)
 export async function POST(req: Request) {
   console.log('Starting upload process...');
-  
+  console.log('Environment variables present:', {
+    projectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+    bucketName: !!process.env.GOOGLE_CLOUD_BUCKET_NAME,
+    clientEmail: !!process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+    privateKey: !!process.env.GOOGLE_CLOUD_PRIVATE_KEY,
+  });
+
   try {
+    if (!process.env.GOOGLE_CLOUD_PROJECT_ID || 
+        !process.env.GOOGLE_CLOUD_BUCKET_NAME || 
+        !process.env.GOOGLE_CLOUD_CLIENT_EMAIL || 
+        !process.env.GOOGLE_CLOUD_PRIVATE_KEY) {
+      throw new Error('Missing required Google Cloud credentials');
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
     
     if (!file) {
-      console.error('No file provided');
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No file provided" }, 
+        { status: 400 }
+      );
     }
 
     console.log('File received:', {
@@ -86,13 +101,18 @@ export async function POST(req: Request) {
       );
     }
   } catch (error: any) {
-    console.error("General error during upload:", {
+    console.error("Upload error details:", {
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
+      code: error.code
     });
     
     return NextResponse.json(
-      { error: "Upload failed", details: error.message },
+      { 
+        error: "Upload failed", 
+        details: error.message,
+        code: error.code
+      }, 
       { status: 500 }
     );
   }
