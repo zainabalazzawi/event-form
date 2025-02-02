@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { Storage } from "@google-cloud/storage";
 
-// Initialize storage with explicit credentials
 const storage = new Storage({
   projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
   credentials: {
