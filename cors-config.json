@@ -3,6 +3,7 @@
       "origin": [
         "http://localhost:3000",
         "https://event-form.vercel.app",
+        "https://event-form-bice.vercel.app",
         "https://event-form-git-main-zainabalazzawis-projects.vercel.app"
       ],
       "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
