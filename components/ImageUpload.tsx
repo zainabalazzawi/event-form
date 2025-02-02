@@ -12,11 +12,10 @@ interface ImageUploadProps {
   name: string;
 }
 
-const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
+export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
   ({ name }, ref) => {
     const { control } = useFormContext();
     const [uploadLoading, setUploadLoading] = useState(false);
-    const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -30,7 +29,6 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
 
     const handleFile = async (file: File): Promise<string> => {
       try {
-        setUploadError(null);
         const formData = new FormData();
         formData.append('file', file);
 
@@ -40,38 +38,10 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
           },
         });
 
-        console.log('Upload response:', response.data);
-
-        if (!response.data.url) {
-          throw new Error('Upload failed - no URL returned');
-        }
-    
         return response.data.url;
-      } catch (error: any) {
-        console.error('Error uploading file:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        setUploadError(error.response?.data?.details || error.response?.data?.error || error.message);
-        throw error;
-      }
-    };
-
-    const handleFileUpload = async (file: File, onChange: (value: string) => void) => {
-      if (!file || !file.type.startsWith("image/")) {
-        setUploadError('Please select an image file');
-        return;
-      }
-
-      try {
-        setUploadLoading(true);
-        const imageUrl = await handleFile(file);
-        onChange(imageUrl);
       } catch (error) {
-        // Error is already handled in handleFile
-      } finally {
-        setUploadLoading(false);
+        console.error('Error uploading file:', error);
+        throw error;
       }
     };
 
@@ -104,20 +74,27 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
                     e.preventDefault();
                     e.stopPropagation();
                     const file = e.dataTransfer.files[0];
-                    await handleFileUpload(file, onChange);
+                    if (file && file.type.startsWith("image/")) {
+                      setUploadLoading(true);
+                      const imageUrl = await handleFile(file);
+                      onChange(imageUrl);
+                      setUploadLoading(false);
+                    }
                   }}
                   onClick={openFileSelector}
-                  className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary ${
-                    uploadError ? 'border-red-500' : ''
-                  }`}
+                  className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary"
                 >
                   <input
                     type="file"
                     ref={fileInputRef}
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
-                      if (file) {
-                        await handleFileUpload(file, onChange);
+                      if (file && file.type.startsWith("image/")) {
+                        setUploadLoading(true);
+                        const imageUrl = await handleFile(file);
+                        console.log("imageUrl",imageUrl)
+                        onChange(imageUrl);
+                        setUploadLoading(false);
                       }
                     }}
                     accept="image/*"
@@ -135,9 +112,6 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
                     PNG, JPG up to 10MB
                   </p>
                 </div>
-                {uploadError && (
-                  <p className="text-sm text-red-500 mt-2">{uploadError}</p>
-                )}
                 {value && (
                   <Button
                     type="button"
@@ -161,5 +135,3 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
 );
 
 ImageUpload.displayName = "ImageUpload";
-
-export { ImageUpload }; 
