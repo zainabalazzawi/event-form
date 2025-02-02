@@ -16,6 +16,7 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
   ({ name }, ref) => {
     const { control } = useFormContext();
     const [uploadLoading, setUploadLoading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -29,6 +30,7 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
 
     const handleFile = async (file: File): Promise<string> => {
       try {
+        setUploadError(null);
         const formData = new FormData();
         formData.append('file', file);
 
@@ -37,11 +39,33 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
             'Content-Type': 'multipart/form-data',
           },
         });
+
+        if (!response.data.url) {
+          throw new Error('Upload failed - no URL returned');
+        }
     
         return response.data.url;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error uploading file:', error);
+        setUploadError(error.response?.data?.error || error.message || 'Upload failed');
         throw error;
+      }
+    };
+
+    const handleFileUpload = async (file: File, onChange: (value: string) => void) => {
+      if (!file || !file.type.startsWith("image/")) {
+        setUploadError('Please select an image file');
+        return;
+      }
+
+      try {
+        setUploadLoading(true);
+        const imageUrl = await handleFile(file);
+        onChange(imageUrl);
+      } catch (error) {
+        // Error is already handled in handleFile
+      } finally {
+        setUploadLoading(false);
       }
     };
 
@@ -74,27 +98,20 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
                     e.preventDefault();
                     e.stopPropagation();
                     const file = e.dataTransfer.files[0];
-                    if (file && file.type.startsWith("image/")) {
-                      setUploadLoading(true);
-                      const imageUrl = await handleFile(file);
-                      onChange(imageUrl);
-                      setUploadLoading(false);
-                    }
+                    await handleFileUpload(file, onChange);
                   }}
                   onClick={openFileSelector}
-                  className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary"
+                  className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary ${
+                    uploadError ? 'border-red-500' : ''
+                  }`}
                 >
                   <input
                     type="file"
                     ref={fileInputRef}
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
-                      if (file && file.type.startsWith("image/")) {
-                        setUploadLoading(true);
-                        const imageUrl = await handleFile(file);
-                        console.log("imageUrl",imageUrl)
-                        onChange(imageUrl);
-                        setUploadLoading(false);
+                      if (file) {
+                        await handleFileUpload(file, onChange);
                       }
                     }}
                     accept="image/*"
@@ -112,6 +129,9 @@ const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
                     PNG, JPG up to 10MB
                   </p>
                 </div>
+                {uploadError && (
+                  <p className="text-sm text-red-500 mt-2">{uploadError}</p>
+                )}
                 {value && (
                   <Button
                     type="button"
