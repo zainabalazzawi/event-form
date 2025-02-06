@@ -8,6 +8,7 @@ import { Input } from "./ui/input";
 import { useSearchStore } from "@/store/searchStore";
 import { useDebouncedCallback } from "use-debounce";
 import { Search } from "lucide-react";
+import Image from "next/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,15 +36,25 @@ const Header = () => {
   return (
     <div className="bg-background border-b">
       <div className="mx-auto px-6 py-4 flex justify-between items-center">
-        <div className="relative w-72">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search events..."
-            defaultValue={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="pl-8"
+        <div className="flex items-center gap-6">
+          <Image
+            src="/Eventy.svg"
+            alt="Logo"
+            width={100}
+            height={100}
+            className="cursor-pointer"
+            onClick={() => router.push('/')}
           />
+          <div className="relative w-72">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search events..."
+              defaultValue={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="pl-8"
+            />
+          </div>
         </div>
 
         <div className="flex items-center">
