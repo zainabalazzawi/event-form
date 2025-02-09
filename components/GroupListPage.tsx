@@ -17,6 +17,7 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import EditGroupForm from "./EditGroupForm";
+import { LoadingState } from "./LoadingState";
 
 export type Group = {
   id: number;
@@ -109,8 +110,13 @@ const GroupListPage = () => {
     }
   };
   if (isLoading) {
-    return <div>Loading...</div>;
-  }
+    return (
+			<LoadingState
+				text='Loading groups'
+				iconSize={64}
+				className="animate-spin text-[#649C9E]"
+			/>
+		) }
 
   if (isError) {
     return <div>Error: Unable to load groups. Please try again later.</div>;

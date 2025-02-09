@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { ImageUpload } from "./ImageUpload";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 
@@ -55,18 +54,17 @@ type EditEventFormProps = {
     endDate: string;
     image?: string;
   };
-  isOpen: boolean;
-  onClose: () => void;
+  onSuccess?: () => void;
 };
 
-const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
+const EditEventForm = ({ event , onSuccess}: EditEventFormProps) => {
   const client = useApolloClient();
   const queryClient = useQueryClient();
 
   const formatDateForInput = (dateString: string) => {
     const date = new Date(dateString || Date.now());
-    return isNaN(date.getTime()) 
-      ? new Date().toISOString().slice(0, 16) 
+    return isNaN(date.getTime())
+      ? new Date().toISOString().slice(0, 16)
       : date.toISOString().slice(0, 16);
   };
 
@@ -111,7 +109,7 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["event", event.id] });
-      onClose();
+      onSuccess?.();
     },
   });
 
@@ -122,29 +120,29 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
     });
   };
 
-
   const handleStartDateChange = (date: Date | undefined) => {
     if (date) {
-      const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-      setValue('startDate', localDate.toISOString(), { shouldValidate: true });
+      const localDate = new Date(
+        date.getTime() - date.getTimezoneOffset() * 60000
+      );
+      setValue("startDate", localDate.toISOString(), { shouldValidate: true });
     }
   };
   const handleEndDateChange = (date: Date | undefined) => {
     if (date) {
-      const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-      setValue('endDate', localDate.toISOString(), { shouldValidate: true });
+      const localDate = new Date(
+        date.getTime() - date.getTimezoneOffset() * 60000
+      );
+      setValue("endDate", localDate.toISOString(), { shouldValidate: true });
     }
   };
 
-  const startDate = watch('startDate');
-  const endDate = watch('endDate');
+  const startDate = watch("startDate");
+  const endDate = watch("endDate");
+
+  console.log(endDate)
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit Event</DialogTitle>
-        </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(onHandleSubmit)} className="w-full">
             <FormItem className="my-5">
@@ -167,10 +165,10 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
 
             <FormItem className="my-5">
               <FormLabel>Start Date and Time</FormLabel>
-               <DateTimePicker 
-                                value={startDate ? new Date(startDate) : undefined}
-                                onChange={handleStartDateChange}
-                              />
+              <DateTimePicker
+                value={startDate ? new Date(startDate) : undefined}
+                onChange={handleStartDateChange}
+              />
               <FormMessage>
                 {errors.startDate && <span>{errors.startDate.message}</span>}
               </FormMessage>
@@ -178,10 +176,10 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
 
             <FormItem className="my-5">
               <FormLabel>End Date and Time</FormLabel>
-              <DateTimePicker 
-                               value={endDate ? new Date(endDate) : undefined}
-                               onChange={handleStartDateChange}
-                             />
+              <DateTimePicker
+                value={endDate ? new Date(endDate) : undefined}
+                onChange={handleEndDateChange}
+              />
               <FormMessage>
                 {errors.endDate && <span>{errors.endDate.message}</span>}
               </FormMessage>
@@ -200,8 +198,6 @@ const EditEventForm = ({ event, isOpen, onClose }: EditEventFormProps) => {
             </Button>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
   );
 };
 

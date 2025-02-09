@@ -10,6 +10,7 @@ import JoinEventButton from "@/components/JoinEventButton";
 import Comments from "@/components/Comments";
 import { DataTable } from "@/components/ui/data-table";
 import { eventMemberColumns } from "./eventMemberColumns.const";
+import { LoadingState } from "@/components/LoadingState";
 
 const GET_EVENT_BY_ID = gql`
   query GetEventById($id: Int!) {
@@ -73,8 +74,14 @@ export default function EventPage() {
     queryFn: () => getEventMembers(client, eventId),
   });
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Error loading event</div>;
+  if (isLoading) {
+    return (
+      <LoadingState
+        text='Loading group detail'
+        iconSize={64}
+        className="animate-spin text-[#649C9E]"
+      />
+    ) }  if (isError) return <div>Error loading event</div>;
   if (!event) return <div>Event not found</div>;
 
   return (

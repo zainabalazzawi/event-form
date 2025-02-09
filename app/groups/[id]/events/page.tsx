@@ -45,7 +45,7 @@ const EventsPage = () => {
     queryFn: () => getGroupById(client, groupId),
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  // if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading group</div>;
   if (!group) return <div>Group not found</div>;
 

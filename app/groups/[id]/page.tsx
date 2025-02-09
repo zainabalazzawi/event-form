@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import { useParams } from "next/navigation";
 import GroupHeader from "@/components/GroupHeader";
+import { LoadingState } from "@/components/LoadingState";
 
 const GET_GROUP_BY_ID = gql`
   query GetGroupById($id: Int!) {
@@ -43,7 +44,14 @@ export default function GroupPage() {
     queryFn: () => getGroupById(client, groupId),
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <LoadingState
+        text='Loading group detail'
+        iconSize={64}
+        className="animate-spin text-[#649C9E]"
+      />
+    ) }
   if (isError) return <div>Error loading group</div>;
   if (!group) return <div>Group not found</div>;
 

@@ -6,11 +6,15 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useSearchStore } from "@/store/searchStore";
 import { formatTimeRange } from "@/lib/utils";
-import EditEventForm from "./EditEventForm";
 import { Calendar, CircleCheck, Pencil, Plus, Trash } from "lucide-react";
 import Image from "next/image";
 import JoinEventButton from "./JoinEventButton";
-
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +25,8 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import CreateGroupEventForm from "./CreateGroupEventForm";
+import { useRouter } from "next/navigation";
+import { LoadingState } from "./LoadingState";
 export type Event = {
   id: number;
   title: string;
@@ -90,6 +96,7 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
   const [showEventDialog, setShowEventDialog] = useState(false);
+  const router = useRouter();
 
   const {
     data: events,
@@ -149,33 +156,48 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
       event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (isLoading) return <div>Loading events...</div>;
+  if (isLoading) {
+    return (
+      <LoadingState
+        text='Loading groups'
+        iconSize={64}
+        className="animate-spin text-[#649C9E]"
+      />
+    ) }
   if (isError) return <div>Error loading events</div>;
-
 
   return (
     <div className="px-8 mt-8 pb-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Upcoming events</h1>
-        {memberData?.members?.some(
-          (member: any) =>
-            member.role === "admin" &&
-            member.userId === parseInt(session?.user?.id as string)
-        ) && (
-          <Button
-            onClick={() => setShowEventDialog(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus size={16} />
-            Create Event
-          </Button>
-        )}
-      </div>
-      
-      <CreateGroupEventForm
-        groupId={groupId}
-        onSuccess={() => setShowEventDialog(false)}
-      />
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="item-1">
+          <AccordionTrigger>
+            <div className="flex justify-between items-center mb-6">
+              {memberData?.members?.some(
+                (member: any) =>
+                  member.role === "admin" &&
+                  member.userId === parseInt(session?.user?.id as string)
+              ) && (
+                <Button
+                  onClick={() => setShowEventDialog(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Create Event
+                </Button>
+              )}
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <CreateGroupEventForm
+              groupId={groupId}
+              onSuccess={() => setShowEventDialog(false)}
+            />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <h1 className="text-2xl font-bold my-10">Upcoming events</h1>
+
       <div className="grid grid-cols-4 gap-4">
         {filteredEvents && filteredEvents.length > 0 ? (
           filteredEvents.map((event: Event) => (
@@ -206,7 +228,11 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
                       <div className="flex gap-2">
                         <Pencil
                           size={15}
-                          onClick={() => setEditingEvent(event)}
+                          onClick={() =>
+                            router?.push(
+                              `/groups/${groupId}/events/${event.id}/edit`
+                            )
+                          }
                           className="cursor-pointer hover:text-blue-600"
                         />
                         <Trash
@@ -246,13 +272,6 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
         )}
       </div>
 
-      {editingEvent && (
-        <EditEventForm
-          event={editingEvent}
-          isOpen={!!editingEvent}
-          onClose={() => setEditingEvent(null)}
-        />
-      )}
       <Dialog
         open={!!eventToDelete}
         onOpenChange={(open) => !open && setEventToDelete(null)}

@@ -15,6 +15,7 @@ import { ImageUpload } from "./ImageUpload";
 import { useRouter } from "next/navigation";
 import { Textarea } from "./ui/textarea";
 import { DateTimePicker } from "./ui/date-time-picker";
+import { Card, CardContent } from "./ui/card";
 
 const CREATE_GROUP_EVENT = gql`
   mutation CreateGroupEvent(
@@ -145,21 +146,25 @@ const CreateGroupEventForm = ({
 
   const handleStartDateChange = (date: Date | undefined) => {
     if (date) {
-      const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-      setValue('startDate', localDate.toISOString(), { shouldValidate: true });
+      const localDate = new Date(
+        date.getTime() - date.getTimezoneOffset() * 60000
+      );
+      setValue("startDate", localDate.toISOString(), { shouldValidate: true });
     }
   };
   const handleEndDateChange = (date: Date | undefined) => {
     if (date) {
-      const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-      setValue('endDate', localDate.toISOString(), { shouldValidate: true });
+      const localDate = new Date(
+        date.getTime() - date.getTimezoneOffset() * 60000
+      );
+      setValue("endDate", localDate.toISOString(), { shouldValidate: true });
     }
   };
 
-  const startDate = watch('startDate');
-  const endDate = watch('endDate');
+  const startDate = watch("startDate");
+  const endDate = watch("endDate");
 
-console.log('startDate',startDate)
+  console.log("startDate", startDate);
 
   const renderStep = () => {
     switch (step) {
@@ -199,7 +204,7 @@ console.log('startDate',startDate)
                     <FormLabel className="text-sm text-gray-500">
                       Start Date and Time
                     </FormLabel>
-                    <DateTimePicker 
+                    <DateTimePicker
                       value={startDate ? new Date(startDate) : undefined}
                       onChange={handleStartDateChange}
                     />
@@ -211,8 +216,10 @@ console.log('startDate',startDate)
                   </div>
 
                   <div className="flex-1">
-                    <FormLabel className="text-sm text-gray-500">End Date and Time</FormLabel>
-                    <DateTimePicker 
+                    <FormLabel className="text-sm text-gray-500">
+                      End Date and Time
+                    </FormLabel>
+                    <DateTimePicker
                       value={endDate ? new Date(endDate) : undefined}
                       onChange={handleEndDateChange}
                     />
@@ -236,65 +243,69 @@ console.log('startDate',startDate)
   };
 
   return (
-    <div className="flex items-center justify-center">
-      <div className="p-10 w-[90%]">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="font-semibold">Create Event</h1>
-          <div className="flex gap-2">
-            <div
-              className={`h-2 w-12 rounded ${
-                step >= 1 ? "bg-primary" : "bg-gray-200"
-              }`}
-            />
-            <div
-              className={`h-2 w-12 rounded ${
-                step >= 2 ? "bg-primary" : "bg-gray-200"
-              }`}
-            />
+    <Card className="p-6">
+      <CardContent className="">
+        <div className="flex items-center justify-center">
+          <div className="p-10 w-[90%]">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="font-semibold">Create Event</h1>
+              <div className="flex gap-2">
+                <div
+                  className={`h-2 w-12 rounded ${
+                    step >= 1 ? "bg-primary" : "bg-gray-200"
+                  }`}
+                />
+                <div
+                  className={`h-2 w-12 rounded ${
+                    step >= 2 ? "bg-primary" : "bg-gray-200"
+                  }`}
+                />
+              </div>
+            </div>
+
+            <Form {...form}>
+              <form onSubmit={handleSubmit(onHandleSubmit)}>
+                {renderStep()}
+
+                <div className="flex justify-between mt-6">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    disabled={step === 1}
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" /> Back
+                  </Button>
+
+                  {step < 2 ? (
+                    <Button type="button" onClick={handleNext}>
+                      Next <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button type="submit">Create Event</Button>
+                  )}
+                </div>
+              </form>
+            </Form>
+
+            {mutation.isSuccess && (
+              <div className="mt-4 p-4 text-green-800 border border-green-800 rounded">
+                Event created successfully!
+              </div>
+            )}
+
+            {mutation.isError && (
+              <div className="mt-4 p-4 text-red-800 border border-red-800 rounded">
+                {mutation.error?.message === "Failed to create group event"
+                  ? "You do not have permission to create events in this group. Only group admins can create events."
+                  : mutation.error?.message ||
+                    "Error creating event. Please try again."}
+              </div>
+            )}
           </div>
         </div>
-
-        <Form {...form}>
-          <form onSubmit={handleSubmit(onHandleSubmit)}>
-            {renderStep()}
-
-            <div className="flex justify-between mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBack}
-                disabled={step === 1}
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" /> Back
-              </Button>
-
-              {step < 2 ? (
-                <Button type="button" onClick={handleNext}>
-                  Next <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              ) : (
-                <Button type="submit">Create Event</Button>
-              )}
-            </div>
-          </form>
-        </Form>
-
-        {mutation.isSuccess && (
-          <div className="mt-4 p-4 text-green-800 border border-green-800 rounded">
-            Event created successfully!
-          </div>
-        )}
-
-        {mutation.isError && (
-          <div className="mt-4 p-4 text-red-800 border border-red-800 rounded">
-            {mutation.error?.message === "Failed to create group event"
-              ? "You do not have permission to create events in this group. Only group admins can create events."
-              : mutation.error?.message ||
-                "Error creating event. Please try again."}
-          </div>
-        )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
