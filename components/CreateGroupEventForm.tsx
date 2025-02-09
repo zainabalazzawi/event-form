@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageUpload } from "./ImageUpload";
 import { useRouter } from "next/navigation";
 import { Textarea } from "./ui/textarea";
+import { DateTimePicker } from "./ui/date-time-picker";
 
 const CREATE_GROUP_EVENT = gql`
   mutation CreateGroupEvent(
@@ -86,6 +87,8 @@ const CreateGroupEventForm = ({
     register,
     handleSubmit,
     trigger,
+    setValue,
+    watch,
     formState: { errors },
   } = form;
 
@@ -140,6 +143,24 @@ const CreateGroupEventForm = ({
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleStartDateChange = (date: Date | undefined) => {
+    if (date) {
+      const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+      setValue('startDate', localDate.toISOString(), { shouldValidate: true });
+    }
+  };
+  const handleEndDateChange = (date: Date | undefined) => {
+    if (date) {
+      const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+      setValue('endDate', localDate.toISOString(), { shouldValidate: true });
+    }
+  };
+
+  const startDate = watch('startDate');
+  const endDate = watch('endDate');
+
+console.log('startDate',startDate)
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -176,12 +197,11 @@ const CreateGroupEventForm = ({
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <FormLabel className="text-sm text-gray-500">
-                      Start
+                      Start Date and Time
                     </FormLabel>
-                    <Input
-                      type="datetime-local"
-                      {...register("startDate")}
-                      className="mt-1"
+                    <DateTimePicker 
+                      value={startDate ? new Date(startDate) : undefined}
+                      onChange={handleStartDateChange}
                     />
                     <FormMessage>
                       {errors.startDate && (
@@ -191,11 +211,10 @@ const CreateGroupEventForm = ({
                   </div>
 
                   <div className="flex-1">
-                    <FormLabel className="text-sm text-gray-500">End</FormLabel>
-                    <Input
-                      type="datetime-local"
-                      {...register("endDate")}
-                      className="mt-1"
+                    <FormLabel className="text-sm text-gray-500">End Date and Time</FormLabel>
+                    <DateTimePicker 
+                      value={endDate ? new Date(endDate) : undefined}
+                      onChange={handleEndDateChange}
                     />
                     <FormMessage>
                       {errors.endDate && <span>{errors.endDate.message}</span>}
@@ -218,7 +237,7 @@ const CreateGroupEventForm = ({
 
   return (
     <div className="flex items-center justify-center">
-      <div className="p-10 w-[50%]">
+      <div className="p-10 w-[90%]">
         <div className="flex justify-between items-center mb-6">
           <h1 className="font-semibold">Create Event</h1>
           <div className="flex gap-2">

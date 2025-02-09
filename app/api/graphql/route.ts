@@ -331,20 +331,26 @@ const resolvers = {
     eventMembers: async (_: unknown, { eventId }: { eventId: number }) => {
       try {
         const members = await sql`
-          SELECT 
+        WITH RankedMembers AS (
+          SELECT DISTINCT ON (s.id)
             s.id,
             s.user_id as "userId",
             s.event_id as "eventId",
             s.status,
             u.name,
             u.image,
+            s.created_at,
             COALESCE(gm.role, 'member') as role
           FROM subscriptions s
           JOIN users u ON s.user_id = u.id
           LEFT JOIN group_memberships gm ON u.id = gm.user_id
           WHERE s.event_id = ${eventId}
-          ORDER BY s.created_at DESC
-        `;
+        )
+        SELECT * FROM RankedMembers
+        ORDER BY 
+          CASE WHEN role = 'admin' THEN 0 ELSE 1 END,
+          created_at DESC
+      `;
 
         return {
           members: members.rows,

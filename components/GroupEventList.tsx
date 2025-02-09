@@ -21,7 +21,7 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import CreateGroupEventForm from "./CreateGroupEventForm";
- export type Event = {
+export type Event = {
   id: number;
   title: string;
   description: string;
@@ -153,11 +153,6 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
   if (isError) return <div>Error loading events</div>;
 
 
-  console.log(memberData?.members?.some(
-    (member: any) =>
-      member.role === "admin" &&
-      member.userId === parseInt(session?.user?.id as string)
-  ))
   return (
     <div className="px-8 mt-8 pb-6">
       <div className="flex justify-between items-center mb-6">
@@ -176,14 +171,11 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
           </Button>
         )}
       </div>
-      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-        <DialogContent className="max-w-[800px]">
-          <CreateGroupEventForm
-            groupId={groupId}
-            onSuccess={() => setShowEventDialog(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      
+      <CreateGroupEventForm
+        groupId={groupId}
+        onSuccess={() => setShowEventDialog(false)}
+      />
       <div className="grid grid-cols-4 gap-4">
         {filteredEvents && filteredEvents.length > 0 ? (
           filteredEvents.map((event: Event) => (
@@ -245,7 +237,6 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
                 </div>
                 <div className="mt-4">
                   <JoinEventButton eventId={event.id} groupId={groupId} />
-
                 </div>
               </div>
             </div>
