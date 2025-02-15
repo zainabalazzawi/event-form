@@ -35,12 +35,10 @@ export function DateTimePicker({
   };
 
   const formatDateDisplay = (date: Date) => {
-    // Convert UTC to local time for display
     const localDate = new Date(
       date.getTime() + date.getTimezoneOffset() * 60000
     );
-    console.log("localDate", localDate);
-    return format(localDate, "MM/dd/yyyy hh:mm aa");
+    return format(localDate, "MM/dd/yyyy hh:mm");
   };
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
@@ -52,7 +50,7 @@ export function DateTimePicker({
 
   const handleTimeChange = (type: "hour" | "minute", value: string) => {
     if (date) {
-      const newDate = new Date(date);
+      const newDate =  new Date(date.getTime() + date.getTimezoneOffset() * 60000)
       if (type === "hour") {
         newDate.setHours(parseInt(value));
       } else if (type === "minute") {
@@ -62,6 +60,10 @@ export function DateTimePicker({
       onChange?.(newDate);
     }
   };
+
+  const selectedDate = date
+    ? new Date(date.getTime() + date.getTimezoneOffset() * 60000)
+    : undefined;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -81,7 +83,7 @@ export function DateTimePicker({
         <div className="sm:flex">
           <Calendar
             mode="single"
-            selected={date}
+            selected={selectedDate}
             onSelect={handleDateSelect}
             initialFocus
           />
