@@ -1,8 +1,8 @@
 "use client";
- 
+
 import * as React from "react";
 import { format } from "date-fns";
- 
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -13,48 +13,46 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { CalendarIcon } from "lucide-react";
- 
+
 export function DateTimePicker({
-    value,
-    onChange
-  }: {
-    value?: Date;
-    onChange?: (date: Date | undefined) => void;
-  }) {
+  value,
+  onChange,
+}: {
+  value?: Date;
+  onChange?: (date: Date | undefined) => void;
+}) {
   const [date, setDate] = React.useState<Date>();
   const [isOpen, setIsOpen] = React.useState(false);
- 
-
 
   React.useEffect(() => {
     setDate(value);
   }, [value]);
 
-
   const hours = Array.from({ length: 24 }, (_, i) => i);
-  
+
   const getLocalHour = (date: Date) => {
     return date.getUTCHours();
   };
-  const formatDateWithLocalTime = (date: Date) => {
-    const localHour = getLocalHour(date);
-    const minutes = date.getMinutes();
-    return `${format(date, "MM/dd/yyyy")} ${localHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-  }; 
- 
+
+  const formatDateDisplay = (date: Date) => {
+    // Convert UTC to local time for display
+    const localDate = new Date(
+      date.getTime() + date.getTimezoneOffset() * 60000
+    );
+    console.log("localDate", localDate);
+    return format(localDate, "MM/dd/yyyy hh:mm aa");
+  };
+
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(selectedDate);
     }
     onChange?.(selectedDate);
   };
- 
-  const handleTimeChange = (
-    type: "hour" | "minute",
-    value: string
-  ) => {
+
+  const handleTimeChange = (type: "hour" | "minute", value: string) => {
     if (date) {
-        const newDate = new Date(date);
+      const newDate = new Date(date);
       if (type === "hour") {
         newDate.setHours(parseInt(value));
       } else if (type === "minute") {
@@ -64,7 +62,7 @@ export function DateTimePicker({
       onChange?.(newDate);
     }
   };
- 
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -76,11 +74,7 @@ export function DateTimePicker({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? (
-            format(date, "MM/dd/yyyy hh:mm")
-          ) : (
-            <span>MM/DD/YYYY hh:mm</span>
-          )}
+          {date ? formatDateDisplay(date) : <span>MM/DD/YYYY hh:mm</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
@@ -98,7 +92,9 @@ export function DateTimePicker({
                   <Button
                     key={hour}
                     size="icon"
-                    variant={date && getLocalHour(date) === hour ? "default" : "ghost"}
+                    variant={
+                      date && getLocalHour(date) === hour ? "default" : "ghost"
+                    }
                     className="sm:w-full shrink-0 aspect-square"
                     onClick={() => handleTimeChange("hour", hour.toString())}
                   >
@@ -114,11 +110,15 @@ export function DateTimePicker({
                   <Button
                     key={minute}
                     size="icon"
-                    variant={date && date.getMinutes() === minute ? "default" : "ghost"}
+                    variant={
+                      date && date.getMinutes() === minute ? "default" : "ghost"
+                    }
                     className="sm:w-full shrink-0 aspect-square"
-                    onClick={() => handleTimeChange("minute", minute.toString())}
+                    onClick={() =>
+                      handleTimeChange("minute", minute.toString())
+                    }
                   >
-                    {minute.toString().padStart(2, '0')}
+                    {minute.toString().padStart(2, "0")}
                   </Button>
                 ))}
               </div>

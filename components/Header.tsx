@@ -71,7 +71,7 @@ const Header = () => {
                   signUpDescription="Create an account to create group"
                   redirectUrl="/create-group"
                 >
-                  <Button className="mx-4">start new group</Button>
+                  <Button className="mx-4">Start New Group</Button>
                 </SignInDialog>
               )}
             </>
