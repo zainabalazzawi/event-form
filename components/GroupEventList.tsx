@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useSearchStore } from "@/store/searchStore";
 import { formatTimeRange } from "@/lib/utils";
-import { Calendar, CircleCheck, Pencil, Plus, Trash } from "lucide-react";
+import { Calendar, CircleCheck, Pencil, Plus, LoaderCircleIcon, Trash2 } from "lucide-react";
 import Image from "next/image";
 import JoinEventButton from "./JoinEventButton";
 import {
@@ -227,7 +227,7 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
                       event.email?.toLowerCase() && (
                       <div className="flex gap-2">
                         <Pencil
-                          size={15}
+                          size={18}
                           onClick={() =>
                             router?.push(
                               `/groups/${groupId}/events/${event.id}/edit`
@@ -235,11 +235,10 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
                           }
                           className="cursor-pointer hover:text-blue-600"
                         />
-                        <Trash
-                          size={15}
+                       <Trash2 
+                          size={18}
                           onClick={() => handleDelete(event.id)}
-                          className="cursor-pointer text-red-600 hover:text-red-600"
-                        />
+                          className="cursor-pointer text-red-800 hover:text-red-600"                        />
                       </div>
                     )}
                 </div>
@@ -292,8 +291,20 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
             >
               Cancel
             </Button>
-            <Button type="button" variant="destructive" onClick={confirmDelete}>
-              Delete
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteEventMutation.isPending}
+            >
+              {deleteEventMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <LoaderCircleIcon className="h-4 w-4 animate-spin" />
+                  Deleting...
+                </div>
+              ) : (
+                "Delete"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

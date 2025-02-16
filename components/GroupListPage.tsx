@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useSearchStore } from "@/store/searchStore";
 import Image from "next/image";
-import { Users, Pencil, Trash } from "lucide-react";
+import { Users, Pencil, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -111,12 +111,13 @@ const GroupListPage = () => {
   };
   if (isLoading) {
     return (
-			<LoadingState
-				text='Loading groups'
-				iconSize={64}
-				className="animate-spin text-[#649C9E]"
-			/>
-		) }
+      <LoadingState
+        text="Loading groups"
+        iconSize={64}
+        className="animate-spin text-[#649C9E]"
+      />
+    );
+  }
 
   if (isError) {
     return <div>Error: Unable to load groups. Please try again later.</div>;
@@ -155,25 +156,24 @@ const GroupListPage = () => {
                     session?.user?.email?.toLowerCase() ===
                       group.organizerEmail?.toLowerCase() && (
                       <Pencil
-                        size={15}
+                        size={18}
                         onClick={() => setGroupToEdit(group)}
                         className="cursor-pointer"
                       />
                     )}
+                  {session?.user?.email === group.organizerEmail && (
+                    <Trash2
+                      size={18}
+                      onClick={() => handleDelete(group.id)}
+                      className="cursor-pointer text-red-800 hover:text-red-600"
+                    />
+                  )}
                 </div>
                 <p className="text-gray-600 mt-2 line-clamp-2">{group.about}</p>
                 <div className="flex items-center gap-2 mt-4 text-gray-600">
                   <Users size={15} />
                   <span>{group.memberCount} members</span>
                 </div>
-                {session?.user?.email === group.organizerEmail && (
-                  <button
-                    onClick={() => handleDelete(group.id)}
-                    className="cursor-pointer text-red-800 hover:text-red-600"
-                  >
-                    <Trash />
-                  </button>
-                )}
               </div>
             </div>
           ))
@@ -182,7 +182,7 @@ const GroupListPage = () => {
         )}
       </div>
 
-      <Dialog 
+      <Dialog
         open={!!groupToDelete}
         onOpenChange={(open) => !open && setGroupToDelete(null)}
       >
@@ -190,7 +190,8 @@ const GroupListPage = () => {
           <DialogHeader>
             <DialogTitle>Delete Group</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this group? This action cannot be undone.
+              Are you sure you want to delete this group? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -201,11 +202,7 @@ const GroupListPage = () => {
             >
               Cancel
             </Button>
-            <Button 
-              type="button"
-              variant="destructive" 
-              onClick={confirmDelete}
-            >
+            <Button type="button" variant="destructive" onClick={confirmDelete}>
               Delete
             </Button>
           </DialogFooter>

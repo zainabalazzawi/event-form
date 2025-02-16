@@ -260,7 +260,16 @@ const resolvers = {
     event: async (_: unknown, { id }: { id: number }) => {
       try {
         const event = await sql`
-          SELECT * FROM events 
+          SELECT 
+            id,
+            title,
+            description,
+            TO_CHAR("startDate"::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as "startDate",
+            TO_CHAR("endDate"::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as "endDate",
+            organizer,
+            email,
+            image
+          FROM events
           WHERE id = ${id}
         `;
         if (event.rows.length === 0) {

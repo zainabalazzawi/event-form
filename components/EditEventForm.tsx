@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
 import { ImageUpload } from "./ImageUpload";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { LoaderCircleIcon } from "lucide-react";
 
 const UPDATE_EVENT = gql`
   mutation UpdateEvent(
@@ -61,20 +62,14 @@ const EditEventForm = ({ event , onSuccess}: EditEventFormProps) => {
   const client = useApolloClient();
   const queryClient = useQueryClient();
 
-  const formatDateForInput = (dateString: string) => {
-    const date = new Date(dateString || Date.now());
-    return isNaN(date.getTime())
-      ? new Date().toISOString().slice(0, 16)
-      : date.toISOString().slice(0, 16);
-  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: event.title,
       description: event.description,
-      startDate: formatDateForInput(event.startDate),
-      endDate: formatDateForInput(event.endDate),
+      startDate: event.startDate,
+      endDate: event.endDate,
       image: event.image || "",
     },
   });
@@ -193,8 +188,15 @@ const EditEventForm = ({ event , onSuccess}: EditEventFormProps) => {
               </FormMessage>
             </FormItem>
 
-            <Button type="submit" className="mt-6">
-              Update Event
+            <Button type="submit" className="mt-6" disabled={mutation.isPending}>
+              {mutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <LoaderCircleIcon className="h-4 w-4 animate-spin" />
+                  Updating...
+                </div>
+              ) : (
+                "Update Event"
+              )}
             </Button>
           </form>
         </Form>

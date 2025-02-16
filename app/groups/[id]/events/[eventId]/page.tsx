@@ -5,12 +5,13 @@ import { gql, useApolloClient } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { formatTimeRange } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock } from "lucide-react";
+import { Clock, CornerDownLeft } from "lucide-react";
 import JoinEventButton from "@/components/JoinEventButton";
 import Comments from "@/components/Comments";
 import { DataTable } from "@/components/ui/data-table";
 import { eventMemberColumns } from "./eventMemberColumns.const";
 import { LoadingState } from "@/components/LoadingState";
+import { Button } from "react-day-picker";
 
 const GET_EVENT_BY_ID = gql`
   query GetEventById($id: Int!) {

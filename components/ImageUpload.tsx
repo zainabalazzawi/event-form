@@ -3,7 +3,7 @@
 import { forwardRef, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { UploadCloud, Trash, Loader2 } from "lucide-react";
+import { UploadCloud, Trash2, Loader2 } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
 import { FormControl, FormItem, FormMessage } from "./ui/form";
 import axios from "axios";
@@ -120,7 +120,7 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
                     className="mt-2"
                     onClick={() => onChange("")}
                   >
-                    <Trash className="h-4 w-4 mr-2" />
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Remove Image
                   </Button>
                 )}
