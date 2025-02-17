@@ -35,6 +35,7 @@ import { Button } from "./ui/button";
 import CreateGroupEventForm from "./CreateGroupEventForm";
 import { useRouter } from "next/navigation";
 import { LoadingState } from "./LoadingState";
+import EventCard from "./EventCard";
 export type Event = {
   id: number;
   title: string;
@@ -175,6 +176,25 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
   }
   if (isError) return <div>Error loading events</div>;
 
+  const now = new Date().getTime();
+  const upcomingEvents = filteredEvents
+    ?.filter((event: Event) => {
+      const eventEndTimestamp = parseInt(event.endDate);
+      return !isNaN(eventEndTimestamp) && eventEndTimestamp > now;
+    })
+    .sort(
+      (a: Event, b: Event) => parseInt(a.startDate) - parseInt(b.startDate)
+    );
+
+  const pastEvents = filteredEvents
+    ?.filter((event: Event) => {
+      const eventEndTimestamp = parseInt(event.endDate);
+      return !isNaN(eventEndTimestamp) && eventEndTimestamp <= now;
+    })
+    .sort(
+      (a: Event, b: Event) => parseInt(b.startDate) - parseInt(a.startDate)
+    );
+
   return (
     <div className="px-8 mt-8 pb-6">
       <Accordion type="single" collapsible className="w-full">
@@ -208,78 +228,34 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
       <h1 className="text-2xl font-bold my-10">Upcoming events</h1>
 
       <div className="grid grid-cols-4 gap-4">
-        {filteredEvents && filteredEvents.length > 0 ? (
-          filteredEvents.map((event: Event) => (
-            <div
+        {upcomingEvents && upcomingEvents.length > 0 ? (
+          upcomingEvents.map((event: Event) => (
+            <EventCard
               key={event.id}
-              className="mb-4 border border-gray-300 rounded-lg"
-            >
-              <div className="mb-4 w-full h-48 bg-neutral-200 rounded-t-lg">
-                {event.image && (
-                  <Image
-                    src={event.image}
-                    alt={event.title}
-                    width={300}
-                    height={150}
-                    className="object-cover h-48 w-full rounded-t-lg"
-                  />
-                )}
-              </div>
+              event={event}
+              groupId={groupId}
+              userId={userId}
+              userEmail={session?.user?.email}
+              handleDelete={handleDelete}
+            />
+          ))
+        ) : (
+          <div>No events found</div>
+        )}
+      </div>
+      <h1 className="text-2xl font-bold my-10">Past events</h1>
 
-              <div className="p-5">
-                <div className="flex flex-row gap-2 items-center font-semibold hover:text-[#649C9E] hover:underline">
-                  <Link href={`/groups/${groupId}/events/${event.id}`}>
-                    <span className="font-bold text-xl">{event.title}</span>
-                  </Link>
-                  {userId &&
-                    session?.user?.email?.toLowerCase() ===
-                      event.email?.toLowerCase() && (
-                      <div className="flex gap-2">
-                        <Pencil
-                          size={18}
-                          onClick={() =>
-                            router?.push(
-                              `/groups/${groupId}/events/${event.id}/edit`
-                            )
-                          }
-                          className="cursor-pointer hover:text-blue-600"
-                        />
-                        <Trash2
-                          size={18}
-                          onClick={() => handleDelete(event.id)}
-                          className="cursor-pointer text-red-800 hover:text-red-600"
-                        />
-                      </div>
-                    )}
-                </div>
-                <div className="text-base text-slate-600 font-semibold">
-                  Hosted by:&nbsp;{event.organizer}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex flex-row items-center gap-x-2">
-                    <Calendar size={15} className="text-gray-600" />
-                    <span className="font-medium">
-                      {formatTimeRange(event.startDate, event.endDate).date}
-                    </span>
-                  </div>
-                  <div className="flex flex-row gap-x-2">
-                    <Clock size={15} className="text-gray-600" />
-                    <span className="text-sm text-gray-600">
-                      {formatTimeRange(event.startDate, event.endDate).time}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex felx-row items-center gap-3">
-                  <CircleCheck size={15} className="text-gray-600" />
-                  <span className="font-light">
-                    {event.attendeeCount} going
-                  </span>
-                </div>
-                <div className="mt-4">
-                  <JoinEventButton eventId={event.id} groupId={groupId} />
-                </div>
-              </div>
-            </div>
+      <div className="grid grid-cols-4 gap-4">
+        {pastEvents && pastEvents.length > 0 ? (
+          pastEvents.map((event: Event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              groupId={groupId}
+              userId={userId}
+              userEmail={session?.user?.email}
+              handleDelete={handleDelete}
+            />
           ))
         ) : (
           <div>No events found</div>

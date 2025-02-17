@@ -743,6 +743,9 @@ const resolvers = {
           WHERE gm.group_id = ${groupId} 
           AND u.email = ${session.user.email}
         `;
+           // Convert ISO string dates to timestamps
+           const startTimestamp = new Date(startDate).getTime().toString();
+           const endTimestamp = new Date(endDate).getTime().toString();
 
         if (
           membershipCheck.rows.length === 0 ||
@@ -765,8 +768,8 @@ const resolvers = {
           VALUES (
             ${title}, 
             ${description}, 
-            ${startDate}, 
-            ${endDate}, 
+            ${startTimestamp}, 
+            ${endTimestamp}, 
             ${organizer}, 
             ${email}, 
             ${image},
