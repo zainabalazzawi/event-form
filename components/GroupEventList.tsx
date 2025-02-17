@@ -6,7 +6,15 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useSearchStore } from "@/store/searchStore";
 import { formatTimeRange } from "@/lib/utils";
-import { Calendar, CircleCheck, Pencil, Plus, LoaderCircleIcon, Trash2 } from "lucide-react";
+import {
+  Calendar,
+  CircleCheck,
+  Pencil,
+  Plus,
+  LoaderCircleIcon,
+  Trash2,
+  Clock,
+} from "lucide-react";
 import Image from "next/image";
 import JoinEventButton from "./JoinEventButton";
 import {
@@ -159,11 +167,12 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
   if (isLoading) {
     return (
       <LoadingState
-        text='Loading groups'
+        text="Loading groups"
         iconSize={64}
         className="animate-spin text-[#649C9E]"
       />
-    ) }
+    );
+  }
   if (isError) return <div>Error loading events</div>;
 
   return (
@@ -235,10 +244,11 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
                           }
                           className="cursor-pointer hover:text-blue-600"
                         />
-                       <Trash2 
+                        <Trash2
                           size={18}
                           onClick={() => handleDelete(event.id)}
-                          className="cursor-pointer text-red-800 hover:text-red-600"                        />
+                          className="cursor-pointer text-red-800 hover:text-red-600"
+                        />
                       </div>
                     )}
                 </div>
@@ -246,13 +256,18 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
                   Hosted by:&nbsp;{event.organizer}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Calendar size={15} className="text-gray-600" />
-                  <span className="font-medium">
-                    {formatTimeRange(event.startDate, event.endDate).date}
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {formatTimeRange(event.startDate, event.endDate).time}
-                  </span>
+                  <div className="flex flex-row items-center gap-x-2">
+                    <Calendar size={15} className="text-gray-600" />
+                    <span className="font-medium">
+                      {formatTimeRange(event.startDate, event.endDate).date}
+                    </span>
+                  </div>
+                  <div className="flex flex-row gap-x-2">
+                    <Clock size={15} className="text-gray-600" />
+                    <span className="text-sm text-gray-600">
+                      {formatTimeRange(event.startDate, event.endDate).time}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex felx-row items-center gap-3">
                   <CircleCheck size={15} className="text-gray-600" />

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { formatTimeRange } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, CornerDownLeft } from "lucide-react";
@@ -11,7 +11,7 @@ import Comments from "@/components/Comments";
 import { DataTable } from "@/components/ui/data-table";
 import { eventMemberColumns } from "./eventMemberColumns.const";
 import { LoadingState } from "@/components/LoadingState";
-import { Button } from "react-day-picker";
+import { Button } from "@/components/ui/button";
 
 const GET_EVENT_BY_ID = gql`
   query GetEventById($id: Int!) {
@@ -58,8 +58,10 @@ const getEventMembers = async (client: any, eventId: number) => {
 
 export default function EventPage() {
   const params = useParams();
+  const router = useRouter();
   const client = useApolloClient();
   const eventId = parseInt(params.eventId as string);
+  const groupId = parseInt(params.id as string);
 
   const {
     data: event,
@@ -78,11 +80,13 @@ export default function EventPage() {
   if (isLoading) {
     return (
       <LoadingState
-        text='Loading group detail'
+        text="Loading group detail"
         iconSize={64}
         className="animate-spin text-[#649C9E]"
       />
-    ) }  if (isError) return <div>Error loading event</div>;
+    );
+  }
+  if (isError) return <div>Error loading event</div>;
   if (!event) return <div>Event not found</div>;
 
   return (
@@ -110,13 +114,13 @@ export default function EventPage() {
             <p>{event.description}</p>
             <Comments eventId={event.id} />
             <div>
-            <h2 className="font-bold mb-4">Attendees</h2>
-            <DataTable
-              columns={eventMemberColumns}
-              data={membersData?.members || []}
-              pageSize={membersData?.pageSize}
-            />
-          </div>
+              <h2 className="font-bold mb-4">Attendees</h2>
+              <DataTable
+                columns={eventMemberColumns}
+                data={membersData?.members || []}
+                pageSize={membersData?.pageSize}
+              />
+            </div>
           </div>
         </div>
 
@@ -136,12 +140,21 @@ export default function EventPage() {
       </div>
       <div className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-          <div className="flex flex-col items-start  gap-1">
-            <span className="text-slate-600">
-              {formatTimeRange(event.startDate, event.endDate, true).date}
-            </span>
-            <h3 className="font-semibold text-lg">{event.title}</h3>
+          <div className="flex flex-row items-center gap-x-2">
+            <Button
+              onClick={() => router.push(`/groups/${groupId}/events`)}
+              className="mr-2"
+            >
+              <CornerDownLeft size={18} />
+            </Button>
+            <div className="flex flex-col items-start  gap-1">
+              <span className="text-slate-600">
+                {formatTimeRange(event.startDate, event.endDate, true).date}
+              </span>
+              <h3 className="font-semibold text-lg">{event.title}</h3>
+            </div>
           </div>
+
           <JoinEventButton eventId={event.id} />
         </div>
       </div>
