@@ -2,21 +2,12 @@
 import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { gql, useApolloClient } from "@apollo/client";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useSearchStore } from "@/store/searchStore";
-import { formatTimeRange } from "@/lib/utils";
 import {
-  Calendar,
-  CircleCheck,
-  Pencil,
   Plus,
   LoaderCircleIcon,
-  Trash2,
-  Clock,
 } from "lucide-react";
-import Image from "next/image";
-import JoinEventButton from "./JoinEventButton";
 import {
   Accordion,
   AccordionContent,
@@ -225,7 +216,9 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
         </AccordionItem>
       </Accordion>
 
-      <h1 className="text-2xl font-bold my-10">Upcoming events</h1>
+      {upcomingEvents && upcomingEvents.length > 0 && (
+        <h1 className="text-2xl font-medium my-10">Upcoming events</h1>
+      )}
 
       <div className="grid grid-cols-4 gap-4">
         {upcomingEvents && upcomingEvents.length > 0 ? (
@@ -240,12 +233,14 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
             />
           ))
         ) : (
-          <div>No events found</div>
+          <div>No Upcoming events found</div>
         )}
       </div>
-      <h1 className="text-2xl font-bold my-10">Past events</h1>
+      {pastEvents && pastEvents.length > 0 && (
+        <h1 className="text-2xl font-semibold my-10">Past events</h1>
+      )}
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-4 mt-4">
         {pastEvents && pastEvents.length > 0 ? (
           pastEvents.map((event: Event) => (
             <EventCard
@@ -258,7 +253,7 @@ const GroupEventList = ({ groupId }: GroupEventListProps) => {
             />
           ))
         ) : (
-          <div>No events found</div>
+          <div>No Past events found</div>
         )}
       </div>
 

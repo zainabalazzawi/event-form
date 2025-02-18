@@ -370,6 +370,33 @@ const resolvers = {
         throw new Error("Failed to fetch event members");
       }
     },
+    userGroups: async (_: unknown, { userId }: { userId: number }) => {
+      try {
+        const groups = await sql`
+          SELECT 
+            g.id,
+            g.name,
+            g.about,
+            g.created_at as "createdAt",
+            g.organizer_id as "organizerId",
+            g.image,
+            COUNT(DISTINCT gm2.user_id) as "memberCount",
+            u.email as "organizerEmail",
+            u.name as "organizerName"
+          FROM groups g
+          JOIN group_memberships gm ON g.id = gm.group_id
+          LEFT JOIN group_memberships gm2 ON g.id = gm2.group_id
+          LEFT JOIN users u ON g.organizer_id = u.id
+          WHERE gm.user_id = ${userId}
+          GROUP BY g.id, g.name, g.about, g.created_at, g.organizer_id, g.image, u.email, u.name
+          ORDER BY g.created_at DESC
+        `;
+        return groups.rows;
+      } catch (error) {
+        console.error("Error fetching user groups:", error);
+        throw new Error("Failed to fetch user groups");
+      }
+    },
   },
   Mutation: {
     joinEvent: async (
