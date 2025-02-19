@@ -16,6 +16,7 @@ type Event = {
   email: string;
   attendeeCount?: number;
   image?: string;
+  groupId: number;
 };
 
 type Group = {
@@ -53,6 +54,7 @@ const typeDefs = gql`
     email: String
     attendeeCount: Int!
     image: String
+    groupId: Int!
   }
 
   type GroupMembership {
@@ -108,6 +110,7 @@ const typeDefs = gql`
     groupMembers(groupId: Int!): GroupMembersResponse!
     eventMembers(eventId: Int!): EventMembersResponse!
     userGroups(userId: Int!): [Group!]!
+    userEvents(userId: Int!): [Event!]!
   }
 
   type Mutation {
@@ -326,7 +329,7 @@ const resolvers = {
           name: member.name,
           role: member.role,
           joinedAt: member.joinedAt,
-          image: member.image
+          image: member.image,
         }));
         return {
           members: transformedMembers,
@@ -395,6 +398,41 @@ const resolvers = {
       } catch (error) {
         console.error("Error fetching user groups:", error);
         throw new Error("Failed to fetch user groups");
+      }
+    },
+    userEvents: async (_: unknown, { userId }: { userId: number }) => {
+      try {
+        const events = await sql`
+          SELECT 
+            e.id,
+            e.title,
+            e.description,
+            e."startDate",
+            e."endDate",
+            e.organizer,
+            e.email,
+            e.image,
+            e.group_id as "groupId",
+            COUNT(DISTINCT CASE WHEN s.status = 'join' THEN s.user_id END) as "attendeeCount"
+          FROM events e
+          JOIN subscriptions s ON e.id = s.event_id
+          WHERE s.user_id = ${userId} AND s.status = 'join'
+          GROUP BY 
+            e.id, 
+            e.title, 
+            e.description, 
+            e."startDate", 
+            e."endDate", 
+            e.organizer, 
+            e.email,
+            e.image,
+            e.group_id
+          ORDER BY e."startDate" DESC
+        `;
+        return events.rows;
+      } catch (error) {
+        console.error("Error fetching user events:", error);
+        throw new Error("Failed to fetch user events");
       }
     },
   },
@@ -770,9 +808,9 @@ const resolvers = {
           WHERE gm.group_id = ${groupId} 
           AND u.email = ${session.user.email}
         `;
-           // Convert ISO string dates to timestamps
-           const startTimestamp = new Date(startDate).getTime().toString();
-           const endTimestamp = new Date(endDate).getTime().toString();
+        // Convert ISO string dates to timestamps
+        const startTimestamp = new Date(startDate).getTime().toString();
+        const endTimestamp = new Date(endDate).getTime().toString();
 
         if (
           membershipCheck.rows.length === 0 ||

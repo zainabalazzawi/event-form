@@ -115,6 +115,9 @@ const Header = () => {
                 <DropdownMenuItem onClick={() => router.push("/my-groups")}>
                   Your groups
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/my-events")}>
+                  Your events
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
                   Log out
                 </DropdownMenuItem>
