@@ -17,7 +17,7 @@ export default function ProfilePage() {
           {session?.user?.image ? (
             <div className="relative w-80 h-80">
               <Image
-                src={session?.user?.image?.replace("s96", "s400")}
+                src={session?.user?.image?.replace("s96-c", "s400-c")}
                 alt="Profile"
                 fill
                 className="rounded-full"
