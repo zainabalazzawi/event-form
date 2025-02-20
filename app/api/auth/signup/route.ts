@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { sql } from "@vercel/postgres";
 
 export async function POST(req: Request) {
-  const { password, email, name, image } = await req.json();
+  const { password, email, name, image, provider } = await req.json();
   try {
     const userExistsQuery = await sql`
       SELECT COUNT(*) > 0 AS exists
@@ -18,13 +18,22 @@ export async function POST(req: Request) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const result = await sql`
-      INSERT INTO users (email, password, name, image)
-      VALUES (${email}, ${hashedPassword}, ${name}, ${image})
-      RETURNING id, email, name, image
-    `;
+    // Handle different authentication providers
+    if (provider === "google") {
+      const result = await sql`
+        INSERT INTO users (email, name, image, provider)
+        VALUES (${email}, ${name}, ${image}, ${provider})
+        RETURNING id, email, name, image
+      `;
+    } else {
+      // Default email/password signup
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const result = await sql`
+        INSERT INTO users (email, password, name, image, provider)
+        VALUES (${email}, ${hashedPassword}, ${name}, ${image}, 'credentials')
+        RETURNING id, email, name, image
+      `;
+    }
 
     return NextResponse.json({ message: "User registered successfully" });
   } catch (error) {

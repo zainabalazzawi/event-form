@@ -92,7 +92,7 @@ const Header = () => {
                   <Avatar>
                     {session?.user?.image && (
                       <AvatarImage
-                      src={session?.user?.image?.replace("s96", "s400")}
+                      src={session?.user?.image?.replace("s96-c", "s400-c")}
                       className="object-cover cursor-pointer"
                       />
                     )}
