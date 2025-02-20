@@ -1,10 +1,15 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { sql } from "@vercel/postgres";
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -57,6 +62,27 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        try {
+          const existingUser = await sql`
+            SELECT * FROM users WHERE email = ${user.email}
+          `;
+
+          if (existingUser.rows.length === 0) {
+            await sql`
+              INSERT INTO users (email, name, image)
+              VALUES (${user.email}, ${user.name}, ${user.image})
+            `;
+          }
+          return true;
+        } catch (error) {
+          console.error("Error during Google sign in:", error);
+          return false;
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;

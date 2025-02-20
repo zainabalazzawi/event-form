@@ -6,8 +6,7 @@ import Image from "next/image";
 export default function ProfilePage() {
   const { data: session } = useSession();
 
-
-  const sizeClassName = `w-80 h-80 rounded-full `
+  const sizeClassName = `w-80 h-80 rounded-full `;
   console.log(session?.user?.image);
   return (
     <div className="flex justify-center min-h-screen bg-gray-50 py-12">
@@ -18,14 +17,16 @@ export default function ProfilePage() {
           {session?.user?.image ? (
             <div className="relative w-80 h-80">
               <Image
-                src={session?.user?.image}
+                src={session?.user?.image?.replace("s96", "s400")}
                 alt="Profile"
                 fill
-                className="rounded-full object-cover"
+                className="rounded-full"
               />
             </div>
           ) : (
-            <div className={`${sizeClassName}bg-gray-200 flex items-center justify-center`}>
+            <div
+              className={`${sizeClassName}bg-gray-200 flex items-center justify-center`}
+            >
               <span className="text-4xl text-gray-500">
                 {session?.user?.name?.[0]?.toUpperCase()}
               </span>

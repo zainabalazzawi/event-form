@@ -90,10 +90,13 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <div className="flex flex-row items-center">
                   <Avatar>
-                    <AvatarImage
-                      src={session?.user?.image ?? ""}
+                    {session?.user?.image && (
+                      <AvatarImage
+                      src={session?.user?.image?.replace("s96", "s400")}
                       className="object-cover cursor-pointer"
-                    />
+                      />
+                    )}
+
                     <AvatarFallback>
                       {session?.user?.name
                         ?.split(" ")
