@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import { DefaultSession } from "next-auth";
-import { JWT, DefaultJWT } from "next-auth/jwt";
+import { DefaultJWT } from "next-auth/jwt";
 import { authOptions } from "../lib/auth";
 
 declare module "next-auth" {
@@ -21,7 +21,6 @@ declare module "next-auth/jwt" {
     image?: string | undefined;
   }
 }
-
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

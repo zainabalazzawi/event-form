@@ -23,7 +23,9 @@ export const authOptions: NextAuthOptions = {
 
         try {
           const userQuery = await sql`
-            SELECT * FROM users WHERE email = ${credentials.email}
+            SELECT id, email, password, name, image 
+            FROM users 
+            WHERE email = ${credentials.email}
           `;
 
           const user = userQuery.rows[0];
